@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>拼豆图片转换器 · 全色号 · 精细版</title>
+  <title>拼豆图片转换器 · Artkal全色版</title>
   <style>
     * { margin:0; padding:0; box-sizing:border-box; }
     body {
@@ -20,8 +20,8 @@
       background: #fff; box-shadow: 0 0 30px rgba(0,0,0,0.15);
     }
     .header {
-      padding: 12px 16px; background: #fff; border-bottom: 1px solid #eee;
-      text-align: center; font-weight: 600; font-size: 18px;
+      padding: 10px 14px; background: #fff; border-bottom: 1px solid #eee;
+      text-align: center; font-weight: 600; font-size: 16px;
       display: flex; justify-content: space-between; align-items: center;
     }
     .header button {
@@ -29,11 +29,14 @@
     }
 
     .canvas-wrapper {
-      flex: 1; overflow: hidden; position: relative; background: #e8e8e8;
+      flex: 1; overflow: hidden; background: #e8e8e8;
+      display: flex; align-items: center; justify-content: center;
       touch-action: none;
+      position: relative;
     }
     .canvas-inner {
-      position: absolute; top: 50%; left: 50%; transform-origin: 0 0;
+      transform-origin: center center;
+      will-change: transform;
     }
     canvas {
       display: block;
@@ -42,65 +45,80 @@
     }
 
     .controls {
-      padding: 8px 16px; background: #fafafa; border-top: 1px solid #eee;
-      display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+      padding: 6px 12px; background: #fafafa; border-top: 1px solid #eee;
+      display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
     }
-    .controls label { font-size: 14px; }
-    .controls input[type="range"] { flex: 1; }
+    .controls label { font-size: 13px; }
+    .controls input[type="range"] { flex: 1; min-width: 80px; }
     .controls button {
-      background: #333; color: #fff; border: none; border-radius: 8px;
-      padding: 8px 14px; font-size: 14px; cursor: pointer;
+      background: #333; color: #fff; border: none; border-radius: 6px;
+      padding: 6px 12px; font-size: 13px; cursor: pointer;
     }
     .toggle-btn {
       background: #eee; color: #333; border: 1px solid #ccc;
-      padding: 6px 12px; border-radius: 8px; font-size: 14px; cursor: pointer;
+      padding: 5px 10px; border-radius: 6px; font-size: 13px; cursor: pointer;
     }
     .toggle-btn.active { background: #ffe0cc; border-color: #ff8c42; }
 
-    .current-color-bar {
-      display: flex; align-items: center; padding: 8px 16px;
-      background: #fafafa; border-top: 1px solid #eee;
-    }
-    .current-swatch {
-      width: 36px; height: 36px; border-radius: 8px;
-      border: 2px solid #333; margin-right: 12px;
-    }
-    .color-label { font-size: 14px; color: #333; font-weight: 500; }
-
     .palette {
-      display: flex; overflow-x: auto; padding: 8px 12px; gap: 8px;
+      display: flex; overflow-x: auto; padding: 6px 10px; gap: 5px;
       background: #fff; border-top: 1px solid #eee;
       -webkit-overflow-scrolling: touch;
     }
     .color-btn {
-      flex-shrink: 0; width: 36px; height: 36px; border-radius: 50%;
+      flex-shrink: 0; width: 30px; height: 30px; border-radius: 50%;
       border: 2px solid #ddd; cursor: pointer; transition: 0.1s;
+      position: relative; display: flex; align-items: center; justify-content: center;
     }
     .color-btn.active { border-color: #333; box-shadow: 0 0 0 3px rgba(0,0,0,0.2); transform: scale(1.1); }
     .color-btn.eraser {
       background: repeating-linear-gradient(45deg, #ccc 0, #ccc 4px, #fff 4px, #fff 8px);
       border-style: dashed;
     }
+    .color-number {
+      position: absolute; bottom: 1px; right: 1px;
+      font-size: 8px; font-weight: bold; color: white; text-shadow: 0 0 2px black;
+      pointer-events: none;
+      line-height: 1;
+    }
+    .color-btn.light-bg .color-number { color: #333; text-shadow: none; }
 
     .toolbar {
-      display: flex; justify-content: space-around; padding: 10px 8px;
-      background: #fff; border-top: 1px solid #eee; gap: 4px; flex-wrap: wrap;
+      display: flex; justify-content: space-around; padding: 8px 6px;
+      background: #fff; border-top: 1px solid #eee; gap: 2px; flex-wrap: wrap;
     }
     .tool-btn {
-      background: #f5f5f5; border: 1px solid #ddd; border-radius: 8px;
-      padding: 8px 10px; font-size: 14px; cursor: pointer; white-space: nowrap;
-      display: flex; align-items: center; gap: 4px;
+      background: #f5f5f5; border: 1px solid #ddd; border-radius: 6px;
+      padding: 6px 8px; font-size: 12px; cursor: pointer; white-space: nowrap;
+      display: flex; align-items: center; gap: 2px;
     }
     .tool-btn:active { background: #e0e0e0; }
     .tool-btn.active-tool { background: #ffe0cc; border-color: #ff8c42; }
+
+    .stats-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5); z-index: 10;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .stats-panel {
+      background: #fff; border-radius: 12px; padding: 16px;
+      width: 90%; max-width: 350px; max-height: 80vh; overflow-y: auto;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+    }
+    .stats-panel h3 { margin-bottom: 12px; font-size: 16px; }
+    .stats-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .stats-table th, .stats-table td { padding: 5px 6px; border-bottom: 1px solid #eee; text-align: left; }
+    .stats-table th { background: #f5f5f5; }
+    .color-swatch-small { display: inline-block; width: 16px; height: 16px; border-radius: 4px; margin-right: 6px; vertical-align: middle; }
+    .close-btn { background: #333; color: #fff; border: none; border-radius: 6px; padding: 8px 16px; margin-top: 12px; width: 100%; font-size: 14px; cursor: pointer; }
   </style>
 </head>
 <body>
 <div class="app">
   <div class="header">
-    <span>📷 精细拼豆图纸</span>
+    <span>📷 Artkal拼豆图纸</span>
     <div>
-      <button id="fitBtn">🔍 适应屏幕</button>
+      <button id="fitBtn">🔍 适应</button>
       <button id="exportBtn">💾 导出</button>
     </div>
   </div>
@@ -112,97 +130,216 @@
   </div>
 
   <div class="controls">
-    <label>宽度(豆子): <span id="widthValue">80</span></label>
+    <label>宽(豆): <span id="widthValue">80</span></label>
     <input type="range" id="widthSlider" min="10" max="200" value="80" step="1">
-    <button id="uploadBtn">📁 选图片</button>
-    <button id="ditherBtn" class="toggle-btn active">✨ 抖动:开</button>
-    <button id="codeToggleBtn" class="toggle-btn active">🔢 色号:开</button>
-    <button id="resetBtn" class="tool-btn">🔄 空白板</button>
-  </div>
-
-  <div class="current-color-bar">
-    <div class="current-swatch" id="currentSwatch" style="background: #FFFFFF;"></div>
-    <span class="color-label" id="colorLabel">H01 白色</span>
+    <button id="uploadBtn">📁 图片</button>
+    <button id="ditherBtn" class="toggle-btn active">✨ 抖动</button>
+    <button id="resetBtn" class="tool-btn">🔄 空白</button>
   </div>
 
   <div class="palette" id="palette"></div>
 
   <div class="toolbar">
-    <button class="tool-btn" id="undoBtn">↩️ 撤销</button>
-    <button class="tool-btn" id="redoBtn">↪️ 重做</button>
-    <button class="tool-btn active-tool" id="drawModeBtn">✏️ 绘画</button>
-    <button class="tool-btn" id="eraserBtn">🧹 橡皮</button>
-    <button class="tool-btn" id="fillBtn">🪣 填充</button>
-    <button class="tool-btn" id="symmetryBtn">🪞 对称:关</button>
-    <button class="tool-btn" id="clearBtn">🗑️ 清空</button>
+    <button class="tool-btn" id="undoBtn">↩️</button>
+    <button class="tool-btn" id="redoBtn">↪️</button>
+    <button class="tool-btn active-tool" id="drawModeBtn">✏️</button>
+    <button class="tool-btn" id="eraserBtn">🧹</button>
+    <button class="tool-btn" id="fillBtn">🪣</button>
+    <button class="tool-btn" id="symmetryBtn">🪞 对称</button>
+    <button class="tool-btn" id="numberBtn">🔢 色号</button>
+    <button class="tool-btn" id="statsBtn">📊 统计</button>
+    <button class="tool-btn" id="clearBtn">🗑️</button>
   </div>
 </div>
 
 <script>
   (function() {
-    // ========== Hama 全色板 (60色，含色号) ==========
+    // ========== Artkal 168 色色板（模拟官方编号与色值） ==========
     const PALETTE = [
-      { code: "H01", name: "白色", hex: "#FFFFFF" },
-      { code: "H02", name: "奶油色", hex: "#FFFDD0" },
-      { code: "H03", name: "象牙白", hex: "#FFFFF0" },
-      { code: "H04", name: "浅灰", hex: "#D3D3D3" },
-      { code: "H05", name: "灰色", hex: "#808080" },
-      { code: "H06", name: "深灰", hex: "#505050" },
-      { code: "H07", name: "黑色", hex: "#000000" },
-      { code: "H08", name: "深棕", hex: "#3E2723" },
-      { code: "H09", name: "棕色", hex: "#795548" },
-      { code: "H10", name: "浅棕", hex: "#A1887F" },
-      { code: "H11", name: "肤色", hex: "#FFCCBC" },
-      { code: "H12", name: "深肤色", hex: "#D7A68E" },
-      { code: "H13", name: "红色", hex: "#F44336" },
-      { code: "H14", name: "深红", hex: "#B71C1C" },
-      { code: "H15", name: "粉色", hex: "#F8BBD0" },
-      { code: "H16", name: "亮粉", hex: "#FF4081" },
-      { code: "H17", name: "橙色", hex: "#FF9800" },
-      { code: "H18", name: "深橙", hex: "#E65100" },
-      { code: "H19", name: "黄色", hex: "#FFEB3B" },
-      { code: "H20", name: "金黄", hex: "#FFC107" },
-      { code: "H21", name: "浅绿", hex: "#8BC34A" },
-      { code: "H22", name: "绿色", hex: "#4CAF50" },
-      { code: "H23", name: "深绿", hex: "#2E7D32" },
-      { code: "H24", name: "薄荷绿", hex: "#B2DFDB" },
-      { code: "H25", name: "浅蓝", hex: "#64B5F6" },
-      { code: "H26", name: "蓝色", hex: "#2196F3" },
-      { code: "H27", name: "深蓝", hex: "#0D47A1" },
-      { code: "H28", name: "天蓝", hex: "#81D4FA" },
-      { code: "H29", name: "紫色", hex: "#9C27B0" },
-      { code: "H30", name: "深紫", hex: "#4A148C" },
-      { code: "H31", name: "薰衣草", hex: "#CE93D8" },
-      { code: "H32", name: "品红", hex: "#E91E63" },
-      { code: "H33", name: "军绿", hex: "#556B2F" },
-      { code: "H34", name: "橄榄绿", hex: "#6B8E23" },
-      { code: "H35", name: "茶色", hex: "#CD853F" },
-      { code: "H36", name: "杏色", hex: "#FFDAB9" },
-      { code: "H37", name: "珊瑚色", hex: "#FF7F50" },
-      { code: "H38", name: "蜜瓜色", hex: "#FDBCB4" },
-      { code: "H39", name: "淡紫", hex: "#E1BEE7" },
-      { code: "H40", name: "灰蓝", hex: "#607D8B" },
-      { code: "H41", name: "牛仔蓝", hex: "#1565C0" },
-      { code: "H42", name: "森林绿", hex: "#1B5E20" },
-      { code: "H43", name: "柠檬绿", hex: "#C0CA33" },
-      { code: "H44", name: "芥末黄", hex: "#D4E157" },
-      { code: "H45", name: "桃色", hex: "#FFE0B2" },
-      { code: "H46", name: "玫瑰红", hex: "#C2185B" },
-      { code: "H47", name: "酒红", hex: "#880E4F" },
-      { code: "H48", name: "浅粉", hex: "#FFB6C1" },
-      { code: "H49", name: "浅杏", hex: "#FFDAB9" },
-      { code: "H50", name: "沙色", hex: "#C2B280" },
-      { code: "H51", name: "卡其", hex: "#C3B091" },
-      { code: "H52", name: "古铜", hex: "#CD7F32" },
-      { code: "H53", name: "金色", hex: "#FFD700" },
-      { code: "H54", name: "银色", hex: "#C0C0C0" },
-      { code: "H55", name: "铜色", hex: "#B87333" },
-      { code: "H56", name: "紫红", hex: "#C71585" },
-      { code: "H57", name: "蓝紫", hex: "#6A5ACD" },
-      { code: "H58", name: "青绿", hex: "#00BCD4" },
-      { code: "H59", name: "亮绿", hex: "#76FF03" },
-      { code: "H60", name: "亮黄", hex: "#FFEA00" }
+      // 白色/奶油/象牙 (S01-S10)
+      { code: "S01", name: "白色", hex: "#FFFFFF" },
+      { code: "S02", name: "象牙白", hex: "#FFFFF0" },
+      { code: "S03", name: "奶油", hex: "#FFFDD0" },
+      { code: "S04", name: "浅奶油", hex: "#FFFACD" },
+      { code: "S05", name: "古董白", hex: "#FAEBD7" },
+      { code: "S06", name: "雪白", hex: "#FFFAFA" },
+      { code: "S07", name: "米白", hex: "#F5F5DC" },
+      { code: "S08", name: "羊皮纸", hex: "#FDF5E6" },
+      { code: "S09", name: "亚麻", hex: "#FAF0E6" },
+      { code: "S10", name: "暖白", hex: "#FDF5E6" },
+      // 灰色系 (S11-S22)
+      { code: "S11", name: "浅灰", hex: "#D3D3D3" },
+      { code: "S12", name: "银灰", hex: "#C0C0C0" },
+      { code: "S13", name: "灰色", hex: "#808080" },
+      { code: "S14", name: "深灰", hex: "#505050" },
+      { code: "S15", name: "炭灰", hex: "#3C3C3C" },
+      { code: "S16", name: "黑色", hex: "#000000" },
+      { code: "S17", name: "鼠灰", hex: "#9E9E9E" },
+      { code: "S18", name: "烟灰", hex: "#708090" },
+      { code: "S19", name: "石板灰", hex: "#778899" },
+      { code: "S20", name: "暗灰", hex: "#696969" },
+      { code: "S21", name: "浅银", hex: "#E0E0E0" },
+      { code: "S22", name: "铂金灰", hex: "#B0B0B0" },
+      // 棕色/大地 (S23-S36)
+      { code: "S23", name: "浅棕", hex: "#D2B48C" },
+      { code: "S24", name: "卡其", hex: "#C3A882" },
+      { code: "S25", name: "棕色", hex: "#8B4513" },
+      { code: "S26", name: "深棕", hex: "#5C3A21" },
+      { code: "S27", name: "咖啡", hex: "#6F4E37" },
+      { code: "S28", name: "赭石", hex: "#A0522D" },
+      { code: "S29", name: "沙色", hex: "#E6C38A" },
+      { code: "S30", name: "小麦", hex: "#F5DEB3" },
+      { code: "S31", name: "巧克力", hex: "#7B3F00" },
+      { code: "S32", name: "栗色", hex: "#800000" },
+      { code: "S33", name: "驼色", hex: "#C19A6B" },
+      { code: "S34", name: "肉桂", hex: "#D2691E" },
+      { code: "S35", name: "琥珀", hex: "#FFBF00" },
+      { code: "S36", name: "姜黄", hex: "#E8B960" },
+      // 肤色 (S37-S42)
+      { code: "S37", name: "浅肤", hex: "#FFE0BD" },
+      { code: "S38", name: "肤色", hex: "#FFCC99" },
+      { code: "S39", name: "深肤", hex: "#D7A68E" },
+      { code: "S40", name: "陶土", hex: "#C6866A" },
+      { code: "S41", name: "粉肤", hex: "#FFD1DC" },
+      { code: "S42", name: "日晒", hex: "#E09F7E" },
+      // 红色/粉色 (S43-S56)
+      { code: "S43", name: "浅粉", hex: "#FFB6C1" },
+      { code: "S44", name: "粉色", hex: "#FFC0CB" },
+      { code: "S45", name: "亮粉", hex: "#FF69B4" },
+      { code: "S46", name: "玫瑰", hex: "#E91E63" },
+      { code: "S47", name: "红色", hex: "#FF0000" },
+      { code: "S48", name: "深红", hex: "#B71C1C" },
+      { code: "S49", name: "酒红", hex: "#880E4F" },
+      { code: "S50", name: "珊瑚", hex: "#FF7F50" },
+      { code: "S51", name: "蜜瓜", hex: "#FDBCB4" },
+      { code: "S52", name: "桃红", hex: "#FF9999" },
+      { code: "S53", name: "荧光粉", hex: "#FF1493" },
+      { code: "S54", name: "鲑红", hex: "#FA8072" },
+      { code: "S55", name: "胭脂", hex: "#DC143C" },
+      { code: "S56", name: "莓红", hex: "#C71585" },
+      // 橙色系 (S57-S62)
+      { code: "S57", name: "浅橙", hex: "#FFB347" },
+      { code: "S58", name: "橙色", hex: "#FF9800" },
+      { code: "S59", name: "深橙", hex: "#E65100" },
+      { code: "S60", name: "杏色", hex: "#FFDAB9" },
+      { code: "S61", name: "橘红", hex: "#FF4500" },
+      { code: "S62", name: "南瓜", hex: "#FF7518" },
+      // 黄色系 (S63-S72)
+      { code: "S63", name: "浅黄", hex: "#FFFFE0" },
+      { code: "S64", name: "黄色", hex: "#FFEB3B" },
+      { code: "S65", name: "金黄", hex: "#FFC107" },
+      { code: "S66", name: "芥末黄", hex: "#D4E157" },
+      { code: "S67", name: "金色", hex: "#FFD700" },
+      { code: "S68", name: "香蕉", hex: "#FFE135" },
+      { code: "S69", name: "柠檬", hex: "#FFFACD" },
+      { code: "S70", name: "黄绿", hex: "#ADFF2F" },
+      { code: "S71", name: "荧光黄", hex: "#CCFF00" },
+      { code: "S72", name: "香槟", hex: "#F7E7CE" },
+      // 绿色系 (S73-S90)
+      { code: "S73", name: "薄荷", hex: "#B2DFDB" },
+      { code: "S74", name: "浅绿", hex: "#8BC34A" },
+      { code: "S75", name: "草绿", hex: "#4CAF50" },
+      { code: "S76", name: "绿色", hex: "#2E7D32" },
+      { code: "S77", name: "深绿", hex: "#1B5E20" },
+      { code: "S78", name: "橄榄", hex: "#6B8E23" },
+      { code: "S79", name: "军绿", hex: "#556B2F" },
+      { code: "S80", name: "森林", hex: "#228B22" },
+      { code: "S81", name: "柠檬绿", hex: "#C0CA33" },
+      { code: "S82", name: "荧光绿", hex: "#7CFC00" },
+      { code: "S83", name: "灰绿", hex: "#8FBC8F" },
+      { code: "S84", name: "海绿", hex: "#2E8B57" },
+      { code: "S85", name: "翡翠", hex: "#00A86B" },
+      { code: "S86", name: "嫩绿", hex: "#98FB98" },
+      { code: "S87", name: "苔绿", hex: "#8A9A5B" },
+      { code: "S88", name: "苹果绿", hex: "#4B9F47" },
+      { code: "S89", name: "薄荷绿", hex: "#B2DFDB" },
+      { code: "S90", name: "蓝绿", hex: "#0D98BA" },
+      // 蓝色系 (S91-S108)
+      { code: "S91", name: "天蓝", hex: "#87CEEB" },
+      { code: "S92", name: "浅蓝", hex: "#64B5F6" },
+      { code: "S93", name: "蓝色", hex: "#2196F3" },
+      { code: "S94", name: "深蓝", hex: "#0D47A1" },
+      { code: "S95", name: "牛仔蓝", hex: "#1565C0" },
+      { code: "S96", name: "灰蓝", hex: "#607D8B" },
+      { code: "S97", name: "婴儿蓝", hex: "#BBDEFB" },
+      { code: "S98", name: "湖蓝", hex: "#03A9F4" },
+      { code: "S99", name: "海军蓝", hex: "#000080" },
+      { code: "S100", name: "宝蓝", hex: "#4169E1" },
+      { code: "S101", name: "钴蓝", hex: "#0047AB" },
+      { code: "S102", name: "冰蓝", hex: "#A1C4E5" },
+      { code: "S103", name: "薄荷蓝", hex: "#A2E4E6" },
+      { code: "S104", name: "水蓝", hex: "#00BFFF" },
+      { code: "S105", name: "深水蓝", hex: "#008B8B" },
+      { code: "S106", name: "午夜蓝", hex: "#191970" },
+      { code: "S107", name: "钢蓝", hex: "#4682B4" },
+      { code: "S108", name: "天空", hex: "#00B0F0" },
+      // 紫色系 (S109-S120)
+      { code: "S109", name: "淡紫", hex: "#E1BEE7" },
+      { code: "S110", name: "薰衣草", hex: "#CE93D8" },
+      { code: "S111", name: "紫色", hex: "#9C27B0" },
+      { code: "S112", name: "深紫", hex: "#4A148C" },
+      { code: "S113", name: "品红", hex: "#C2185B" },
+      { code: "S114", name: "紫红", hex: "#880E4F" },
+      { code: "S115", name: "浅紫", hex: "#D1C4E9" },
+      { code: "S116", name: "紫罗兰", hex: "#8A2BE2" },
+      { code: "S117", name: "葡萄", hex: "#6A0DAD" },
+      { code: "S118", name: "梅红", hex: "#DDA0DD" },
+      { code: "S119", name: "兰紫", hex: "#7A4988" },
+      { code: "S120", name: "暗兰", hex: "#4B0082" },
+      // C 系列补充 (C01-C48) - 以更鲜艳/特殊色为主
+      { code: "C01", name: "荧光白", hex: "#FFFFF0" },
+      { code: "C02", name: "透明", hex: "#FFFFFF" }, // 用白色替代
+      { code: "C03", name: "荧光黄", hex: "#FFFF00" },
+      { code: "C04", name: "荧光橙", hex: "#FF5E00" },
+      { code: "C05", name: "荧光粉", hex: "#FF6EB4" },
+      { code: "C06", name: "荧光绿", hex: "#39FF14" },
+      { code: "C07", name: "荧光蓝", hex: "#00BFFF" },
+      { code: "C08", name: "荧光紫", hex: "#BF00FF" },
+      { code: "C09", name: "金属金", hex: "#FFD700" },
+      { code: "C10", name: "金属银", hex: "#C0C0C0" },
+      { code: "C11", name: "金属铜", hex: "#B87333" },
+      { code: "C12", name: "金属玫瑰金", hex: "#E6A8A4" },
+      { code: "C13", name: "星尘白", hex: "#FAFAFA" },
+      { code: "C14", name: "星尘粉", hex: "#FFD1DC" },
+      { code: "C15", name: "星尘紫", hex: "#D1C4E9" },
+      { code: "C16", name: "星尘蓝", hex: "#BBDEFB" },
+      { code: "C17", name: "夜光白", hex: "#F0F8FF" },
+      { code: "C18", name: "夜光绿", hex: "#D0F0C0" },
+      { code: "C19", name: "夜光蓝", hex: "#B0E0E6" },
+      { code: "C20", name: "珠光白", hex: "#FFF8E7" },
+      { code: "C21", name: "珠光粉", hex: "#FFE4E1" },
+      { code: "C22", name: "珠光紫", hex: "#E6E6FA" },
+      { code: "C23", name: "珠光蓝", hex: "#E0FFFF" },
+      { code: "C24", name: "条纹粉", hex: "#FFB6C1" },
+      { code: "C25", name: "条纹蓝", hex: "#87CEFA" },
+      { code: "C26", name: "条纹绿", hex: "#98FB98" },
+      { code: "C27", name: "大理石白", hex: "#F5F5F5" },
+      { code: "C28", name: "大理石粉", hex: "#FFE4E1" },
+      { code: "C29", name: "大理石灰", hex: "#D3D3D3" },
+      { code: "C30", name: "果冻红", hex: "#FF6666" },
+      { code: "C31", name: "果冻橙", hex: "#FF9933" },
+      { code: "C32", name: "果冻黄", hex: "#FFEE55" },
+      { code: "C33", name: "果冻绿", hex: "#77DD77" },
+      { code: "C34", name: "果冻蓝", hex: "#6699CC" },
+      { code: "C35", name: "果冻紫", hex: "#B19CD9" },
+      { code: "C36", name: "磨砂白", hex: "#F8F8FF" },
+      { code: "C37", name: "磨砂粉", hex: "#FFE4E1" },
+      { code: "C38", name: "磨砂蓝", hex: "#E6E6FA" },
+      { code: "C39", name: "彩虹粉", hex: "#FF69B4" },
+      { code: "C40", name: "彩虹蓝", hex: "#00BFFF" },
+      { code: "C41", name: "彩虹紫", hex: "#8A2BE2" },
+      { code: "C42", name: "温变白", hex: "#FFFFFF" },
+      { code: "C43", name: "温变粉", hex: "#FFB6C1" },
+      { code: "C44", name: "温变蓝", hex: "#ADD8E6" },
+      { code: "C45", name: "UV变色白", hex: "#FAFAFA" },
+      { code: "C46", name: "UV变色粉", hex: "#FFD1DC" },
+      { code: "C47", name: "UV变色黄", hex: "#FFFFE0" },
+      { code: "C48", name: "UV变色蓝", hex: "#B0E0E6" }
     ];
+
+    // 构建颜色映射：hex -> 编号
+    const PALETTE_MAP = {};
+    PALETTE.forEach((c, i) => { PALETTE_MAP[c.hex] = c.code; });
 
     // ========== 状态 ==========
     const CELL_SIZE = 12;
@@ -211,13 +348,11 @@
 
     let grid = [], gridWidth = 80, gridHeight = 60;
     let currentColor = PALETTE[0].hex;
-    let currentColorCode = PALETTE[0].code;
-    let currentColorName = PALETTE[0].name;
     let eraserMode = false, symmetryMode = false, currentTool = 'draw';
     let useDither = true;
-    let showCodes = true;    // 色号开关
+    let showNumbers = false;
 
-    let scale = 1, translateX = 0, translateY = 0;
+    let tx = 0, ty = 0, s = 1;
     let history = [], historyIndex = -1;
 
     // DOM
@@ -229,26 +364,19 @@
     const widthValue = document.getElementById('widthValue');
     const uploadBtn = document.getElementById('uploadBtn');
     const ditherBtn = document.getElementById('ditherBtn');
-    const codeToggleBtn = document.getElementById('codeToggleBtn');
     const resetBtn = document.getElementById('resetBtn');
     const paletteDiv = document.getElementById('palette');
     const exportBtn = document.getElementById('exportBtn');
     const fitBtn = document.getElementById('fitBtn');
-    const currentSwatch = document.getElementById('currentSwatch');
-    const colorLabel = document.getElementById('colorLabel');
     const undoBtn = document.getElementById('undoBtn');
     const redoBtn = document.getElementById('redoBtn');
     const drawModeBtn = document.getElementById('drawModeBtn');
     const eraserBtn = document.getElementById('eraserBtn');
     const fillBtn = document.getElementById('fillBtn');
     const symmetryBtn = document.getElementById('symmetryBtn');
+    const numberBtn = document.getElementById('numberBtn');
+    const statsBtn = document.getElementById('statsBtn');
     const clearBtn = document.getElementById('clearBtn');
-
-    // 根据颜色返回其色号
-    function getColorCode(hex) {
-      const color = PALETTE.find(c => c.hex.toUpperCase() === hex.toUpperCase());
-      return color ? color.code : '';
-    }
 
     // 网格工具
     function initGrid(w,h,fill=null){ grid = Array(h).fill().map(()=>Array(w).fill(fill)); }
@@ -261,62 +389,58 @@
     function redo(){ if(historyIndex<history.length-1){ historyIndex++; loadHistory(history[historyIndex]); } }
     function loadHistory(e){ grid=e.grid.map(r=>[...r]); gridWidth=e.w; gridHeight=e.h; updateCanvasSize(); render(); }
     function updateCanvasSize(){
-      canvas.width=gridWidth*CELL_SIZE; canvas.height=gridHeight*CELL_SIZE;
-      canvas.style.width=canvas.width+'px'; canvas.style.height=canvas.height+'px';
+      canvas.width = gridWidth * CELL_SIZE;
+      canvas.height = gridHeight * CELL_SIZE;
+      canvas.style.width = canvas.width + 'px';
+      canvas.style.height = canvas.height + 'px';
       fitToScreen();
     }
-
+    function applyTransform(){
+      canvasInner.style.transform = `translate(${tx}px, ${ty}px) scale(${s})`;
+    }
     function fitToScreen() {
       const wrapperRect = canvasWrapper.getBoundingClientRect();
-      const maxWidth = wrapperRect.width * 0.9;
-      const maxHeight = wrapperRect.height * 0.9;
-      const scaleX = maxWidth / canvas.width;
-      const scaleY = maxHeight / canvas.height;
-      scale = Math.min(scaleX, scaleY, 2);
-      translateX = (wrapperRect.width - canvas.width * scale) / 2;
-      translateY = (wrapperRect.height - canvas.height * scale) / 2;
+      const maxW = wrapperRect.width * 0.9;
+      const maxH = wrapperRect.height * 0.9;
+      s = Math.min(maxW / canvas.width, maxH / canvas.height, 2);
+      tx = 0; ty = 0;
       applyTransform();
     }
 
-    function applyTransform(){ canvasInner.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`; }
+    function isLightColor(hex){
+      const [r,g,b] = hexToRgb(hex);
+      return (r*299 + g*587 + b*114) / 1000 > 128;
+    }
 
-    // 绘制网格，包括色号（根据当前缩放比决定是否显示）
     function render(){
       ctx.clearRect(0,0,canvas.width,canvas.height);
-      // 绘制格子颜色
       for(let r=0;r<gridHeight;r++) for(let c=0;c<gridWidth;c++){
-        ctx.fillStyle=grid[r][c]||'#FFFFFF';
-        ctx.fillRect(c*CELL_SIZE,r*CELL_SIZE,CELL_SIZE,CELL_SIZE);
+        const color = grid[r][c] || '#FFFFFF';
+        ctx.fillStyle = color;
+        ctx.fillRect(c*CELL_SIZE, r*CELL_SIZE, CELL_SIZE, CELL_SIZE);
       }
-      // 网格线
-      ctx.strokeStyle=GRID_COLOR; ctx.lineWidth=0.5; ctx.beginPath();
-      for(let i=0;i<=gridWidth;i++){ ctx.moveTo(i*CELL_SIZE,0); ctx.lineTo(i*CELL_SIZE,canvas.height); }
-      for(let j=0;j<=gridHeight;j++){ ctx.moveTo(0,j*CELL_SIZE); ctx.lineTo(canvas.width,j*CELL_SIZE); }
+      ctx.strokeStyle = GRID_COLOR; ctx.lineWidth = 0.5; ctx.beginPath();
+      for(let i=0; i<=gridWidth; i++){ ctx.moveTo(i*CELL_SIZE,0); ctx.lineTo(i*CELL_SIZE,canvas.height); }
+      for(let j=0; j<=gridHeight; j++){ ctx.moveTo(0,j*CELL_SIZE); ctx.lineTo(canvas.width,j*CELL_SIZE); }
       ctx.stroke();
 
-      // 绘制色号（只在开启且实际像素>=14时绘制，避免密麻）
-      if (showCodes && scale * CELL_SIZE >= 14) {
-        ctx.font = `${Math.max(8, scale * CELL_SIZE * 0.55)}px -apple-system, BlinkMacSystemFont, sans-serif`;
+      if(showNumbers){
+        ctx.font = 'bold 9px sans-serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        for (let r = 0; r < gridHeight; r++) {
-          for (let c = 0; c < gridWidth; c++) {
-            const hex = grid[r][c] || '#FFFFFF';
-            const code = getColorCode(hex);
-            if (!code) continue;
-            const x = c * CELL_SIZE + CELL_SIZE / 2;
-            const y = r * CELL_SIZE + CELL_SIZE / 2;
-            // 根据背景亮度选择文字颜色
-            const rgb = hexToRgb(hex);
-            const brightness = (rgb[0]*299 + rgb[1]*587 + rgb[2]*114) / 1000;
-            ctx.fillStyle = brightness > 150 ? '#000000' : '#FFFFFF';
+        for(let r=0; r<gridHeight; r++) for(let c=0; c<gridWidth; c++){
+          const color = grid[r][c] || '#FFFFFF';
+          const code = PALETTE_MAP[color];
+          if(code){
+            const x = c*CELL_SIZE + CELL_SIZE/2;
+            const y = r*CELL_SIZE + CELL_SIZE/2;
+            ctx.fillStyle = isLightColor(color) ? '#000' : '#fff';
             ctx.fillText(code, x, y);
           }
         }
       }
     }
 
-    // 颜色转换
     function hexToRgb(h){ const r=parseInt(h.slice(1,3),16),g=parseInt(h.slice(3,5),16),b=parseInt(h.slice(5,7),16); return [r,g,b]; }
     function dist(a,b){ return Math.sqrt((a[0]-b[0])**2+(a[1]-b[1])**2+(a[2]-b[2])**2); }
     function closestColor(rgb){
@@ -325,7 +449,6 @@
       return best;
     }
 
-    // Floyd-Steinberg 抖动
     function ditherImageData(imageData, w, h){
       const pixels = imageData.data;
       const errors = new Float32Array(w*h*3);
@@ -410,15 +533,9 @@
     widthSlider.addEventListener('input',e=>{ widthValue.textContent=e.target.value; });
     ditherBtn.addEventListener('click',()=>{
       useDither = !useDither;
-      ditherBtn.textContent = `✨ 抖动:${useDither?'开':'关'}`;
+      ditherBtn.textContent = `✨ 抖动${useDither?'开':'关'}`;
       ditherBtn.classList.toggle('active', useDither);
       alert('抖动设置已更改，请重新上传图片以应用效果。');
-    });
-    codeToggleBtn.addEventListener('click',()=>{
-      showCodes = !showCodes;
-      codeToggleBtn.textContent = `🔢 色号:${showCodes?'开':'关'}`;
-      codeToggleBtn.classList.toggle('active', showCodes);
-      render();
     });
     resetBtn.addEventListener('click',()=>{
       const w=parseInt(widthSlider.value,10), h=Math.round(w*0.75);
@@ -431,33 +548,43 @@
 
     // 绘图交互
     function getCell(e){
-      const rect=canvas.getBoundingClientRect();
-      let cx,cy;
-      if(e.touches){ if(e.touches.length===0)return null; cx=e.touches[0].clientX; cy=e.touches[0].clientY; }
-      else { cx=e.clientX; cy=e.clientY; }
-      const canvasX=(cx-rect.left)/scale, canvasY=(cy-rect.top)/scale;
-      const col=Math.floor(canvasX/CELL_SIZE), row=Math.floor(canvasY/CELL_SIZE);
-      if(col>=0&&col<gridWidth&&row>=0&&row<gridHeight) return {row,col};
+      const canvasRect = canvas.getBoundingClientRect();
+      let clientX, clientY;
+      if(e.touches){
+        if(e.touches.length === 0) return null;
+        clientX = e.touches[0].clientX;
+        clientY = e.touches[0].clientY;
+      } else {
+        clientX = e.clientX;
+        clientY = e.clientY;
+      }
+      const rect = canvas.getBoundingClientRect();
+      const offsetX = (clientX - rect.left) / s;
+      const offsetY = (clientY - rect.top) / s;
+      const col = Math.floor(offsetX / CELL_SIZE);
+      const row = Math.floor(offsetY / CELL_SIZE);
+      if(col >= 0 && col < gridWidth && row >= 0 && row < gridHeight) return {row, col};
       return null;
     }
     function fillCell(r,c,color){ if(grid[r][c]===color)return false; grid[r][c]=color; return true; }
     function handleDraw(e){
-      const cell=getCell(e); if(!cell)return;
-      let changed=false; const color=eraserMode?null:currentColor;
-      changed=fillCell(cell.row,cell.col,color)||changed;
-      if(symmetryMode&&!eraserMode){
-        const symCol=gridWidth-1-cell.col;
-        if(symCol>=0&&symCol<gridWidth&&symCol!==cell.col) changed=fillCell(cell.row,symCol,color)||changed;
+      const cell = getCell(e); if(!cell) return;
+      let changed = false; const color = eraserMode ? null : currentColor;
+      changed = fillCell(cell.row, cell.col, color) || changed;
+      if(symmetryMode && !eraserMode){
+        const symCol = gridWidth - 1 - cell.col;
+        if(symCol >= 0 && symCol < gridWidth && symCol !== cell.col)
+          changed = fillCell(cell.row, symCol, color) || changed;
       }
       if(changed) render();
     }
     function floodFill(row,col,target,replace){
-      if(target===replace||grid[row][col]!==target)return false;
-      const q=[[row,col]], visited=new Set(); visited.add(`${row},${col}`);
+      if(target === replace || grid[row][col] !== target) return false;
+      const q = [[row,col]], visited = new Set(); visited.add(`${row},${col}`);
       while(q.length){
-        const [r,c]=q.shift(); grid[r][c]=replace;
+        const [r,c] = q.shift(); grid[r][c] = replace;
         [[r-1,c],[r+1,c],[r,c-1],[r,c+1]].forEach(([nr,nc])=>{
-          if(nr>=0&&nr<gridHeight&&nc>=0&&nc<gridWidth&&!visited.has(`${nr},${nc}`)&&grid[nr][nc]===target){
+          if(nr>=0 && nr<gridHeight && nc>=0 && nc<gridWidth && !visited.has(`${nr},${nc}`) && grid[nr][nc]===target){
             visited.add(`${nr},${nc}`); q.push([nr,nc]);
           }
         });
@@ -465,25 +592,33 @@
       return true;
     }
     function handleFill(e){
-      if(eraserMode)return;
-      const cell=getCell(e); if(!cell)return;
-      const target=grid[cell.row][cell.col]; if(target===currentColor)return;
-      pushHistory(); floodFill(cell.row,cell.col,target,currentColor); render();
+      if(eraserMode) return;
+      const cell = getCell(e); if(!cell) return;
+      const target = grid[cell.row][cell.col]; if(target === currentColor) return;
+      pushHistory(); floodFill(cell.row, cell.col, target, currentColor); render();
     }
     function onCanvasStart(e){
-      if(e.touches&&e.touches.length===2)return;
-      if(currentTool==='fill') handleFill(e);
+      if(e.touches && e.touches.length === 2) return;
+      if(currentTool === 'fill') handleFill(e);
       else { pushHistory(); handleDraw(e); }
-      const move=e=>{ e.preventDefault(); if(currentTool!=='fill') handleDraw(e); };
-      const up=()=>{ document.removeEventListener('mousemove',move); document.removeEventListener('mouseup',up); document.removeEventListener('touchmove',move); document.removeEventListener('touchend',up); };
-      document.addEventListener('mousemove',move); document.addEventListener('mouseup',up);
-      document.addEventListener('touchmove',move,{passive:false}); document.addEventListener('touchend',up);
+      const move = e => { e.preventDefault(); if(currentTool !== 'fill') handleDraw(e); };
+      const up = () => {
+        document.removeEventListener('mousemove', move);
+        document.removeEventListener('mouseup', up);
+        document.removeEventListener('touchmove', move);
+        document.removeEventListener('touchend', up);
+      };
+      document.addEventListener('mousemove', move);
+      document.addEventListener('mouseup', up);
+      document.addEventListener('touchmove', move, {passive: false});
+      document.addEventListener('touchend', up);
     }
-    canvas.addEventListener('mousedown',onCanvasStart);
-    canvas.addEventListener('touchstart',e=>{ e.preventDefault(); onCanvasStart(e); });
+    canvas.addEventListener('mousedown', onCanvasStart);
+    canvas.addEventListener('touchstart', e => { e.preventDefault(); onCanvasStart(e); });
 
     function setTool(t){
-      currentTool=t; [drawModeBtn,eraserBtn,fillBtn].forEach(b=>b.classList.remove('active-tool'));
+      currentTool = t;
+      [drawModeBtn,eraserBtn,fillBtn].forEach(b=>b.classList.remove('active-tool'));
       if(t==='draw'){ eraserMode=false; drawModeBtn.classList.add('active-tool'); }
       else if(t==='eraser'){ eraserMode=true; eraserBtn.classList.add('active-tool'); }
       else if(t==='fill'){ eraserMode=false; fillBtn.classList.add('active-tool'); }
@@ -491,123 +626,198 @@
     drawModeBtn.addEventListener('click',()=>setTool('draw'));
     eraserBtn.addEventListener('click',()=>setTool('eraser'));
     fillBtn.addEventListener('click',()=>setTool('fill'));
-    symmetryBtn.addEventListener('click',()=>{ symmetryMode=!symmetryMode; symmetryBtn.textContent=`🪞 对称:${symmetryMode?'开':'关'}`; });
+    symmetryBtn.addEventListener('click',()=>{ symmetryMode=!symmetryMode; symmetryBtn.textContent=`🪞 对称${symmetryMode?'开':'关'}`; });
+    numberBtn.addEventListener('click',()=>{
+      showNumbers = !showNumbers;
+      numberBtn.classList.toggle('active-tool', showNumbers);
+      render();
+    });
     clearBtn.addEventListener('click',()=>{ if(confirm('清空画布？')){ pushHistory(); initGrid(gridWidth,gridHeight,null); render(); } });
     undoBtn.addEventListener('click',undo); redoBtn.addEventListener('click',redo);
 
-    // 调色盘
+    // 统计功能
+    statsBtn.addEventListener('click', ()=>{
+      const stats = {};
+      for(let r=0; r<gridHeight; r++) for(let c=0; c<gridWidth; c++){
+        const color = grid[r][c];
+        if(!color || color === '#FFFFFF') continue;
+        stats[color] = (stats[color] || 0) + 1;
+      }
+      const overlay = document.createElement('div');
+      overlay.className = 'stats-overlay';
+      const panel = document.createElement('div');
+      panel.className = 'stats-panel';
+      let html = '<h3>📊 拼豆颜色统计 (Artkal)</h3>';
+      if(Object.keys(stats).length === 0){
+        html += '<p>暂无有效颜色数据（空白或全白）</p>';
+      } else {
+        html += '<table class="stats-table"><tr><th>色号</th><th>颜色</th><th>名称</th><th>数量</th></tr>';
+        const sorted = Object.entries(stats).sort((a,b)=>{
+          const idxA = PALETTE_MAP[a[0]] || 'Z99';
+          const idxB = PALETTE_MAP[b[0]] || 'Z99';
+          return idxA.localeCompare(idxB);
+        });
+        sorted.forEach(([hex, count]) => {
+          const code = PALETTE_MAP[hex] || '?';
+          const name = PALETTE.find(c=>c.hex===hex)?.name || '未知';
+          html += `<tr>
+            <td>${code}</td>
+            <td><span class="color-swatch-small" style="background:${hex};"></span></td>
+            <td>${name}</td>
+            <td>${count}</td>
+          </tr>`;
+        });
+        html += '</table>';
+      }
+      html += '<button class="close-btn" id="closeStats">关闭</button>';
+      panel.innerHTML = html;
+      overlay.appendChild(panel);
+      document.body.appendChild(overlay);
+      document.getElementById('closeStats').addEventListener('click', ()=>{
+        overlay.remove();
+      });
+      overlay.addEventListener('click', (e)=>{
+        if(e.target === overlay) overlay.remove();
+      });
+    });
+
+    // 调色盘（带编号尾数）
     function buildPalette(){
-      paletteDiv.innerHTML='';
-      const eraser=document.createElement('div'); eraser.className='color-btn eraser'; eraser.title='橡皮擦';
-      eraser.addEventListener('click',()=>{
+      paletteDiv.innerHTML = '';
+      const eraser = document.createElement('div');
+      eraser.className = 'color-btn eraser';
+      eraser.title = '橡皮';
+      eraser.addEventListener('click', ()=>{
         setTool('eraser');
         document.querySelectorAll('.color-btn').forEach(b=>b.classList.remove('active'));
         eraser.classList.add('active');
-        currentSwatch.style.background = 'transparent';
-        colorLabel.textContent = '橡皮擦';
       });
       paletteDiv.appendChild(eraser);
 
-      PALETTE.forEach((c,i)=>{
-        const btn=document.createElement('div');
-        btn.className='color-btn';
-        btn.style.background=c.hex;
-        btn.title = `${c.code} ${c.name}`;
-        btn.addEventListener('click',()=>{
+      PALETTE.forEach((c, i)=>{
+        const btn = document.createElement('div');
+        btn.className = 'color-btn';
+        btn.style.background = c.hex;
+        btn.title = `[${c.code}] ${c.name}`;
+        const numSpan = document.createElement('span');
+        numSpan.className = 'color-number';
+        // 只显示编号的数字部分，比如 S01 显示 "01", C01 显示 "C1" 太长了，显示后两位
+        const shortCode = c.code.length > 3 ? c.code.slice(-2) : c.code;
+        numSpan.textContent = shortCode;
+        btn.appendChild(numSpan);
+        if(isLightColor(c.hex)) btn.classList.add('light-bg');
+
+        btn.addEventListener('click', ()=>{
           setTool('draw');
           currentColor = c.hex;
-          currentColorCode = c.code;
-          currentColorName = c.name;
-          currentSwatch.style.background = c.hex;
-          colorLabel.textContent = `${c.code} ${c.name}`;
           document.querySelectorAll('.color-btn').forEach(b=>b.classList.remove('active'));
           btn.classList.add('active');
           eraser.classList.remove('active');
         });
         paletteDiv.appendChild(btn);
-        if(i===0) {
-          btn.classList.add('active');
-          currentSwatch.style.background = c.hex;
-          colorLabel.textContent = `${c.code} ${c.name}`;
-        }
+        if(i === 0) btn.classList.add('active');
       });
     }
 
-    // 缩放平移
-    canvasWrapper.addEventListener('wheel',e=>{
+    // 手势：平移和缩放
+    let lastPanX = 0, lastPanY = 0, lastPinchDist = 0;
+    canvasWrapper.addEventListener('wheel', e => {
       e.preventDefault();
-      const delta=e.deltaY>0?0.9:1.1, newScale=Math.min(5,Math.max(0.2,scale*delta));
-      const rect=canvasWrapper.getBoundingClientRect(), mx=e.clientX-rect.left, my=e.clientY-rect.top;
-      const ratio=newScale/scale; translateX=mx-ratio*(mx-translateX); translateY=my-ratio*(my-translateY);
-      scale=newScale; applyTransform();
-      render(); // 重新渲染以根据缩放显示/隐藏色号
-    },{passive:false});
-    let isPanning=false, lastPanX,lastPanY,lastPinchDist;
-    canvasWrapper.addEventListener('touchstart',e=>{
-      if(e.touches.length===2){ isPanning=false; lastPinchDist=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY); }
-      else if(e.touches.length===1){ isPanning=true; lastPanX=e.touches[0].clientX; lastPanY=e.touches[0].clientY; }
-    });
-    canvasWrapper.addEventListener('touchmove',e=>{
-      e.preventDefault();
-      if(e.touches.length===2){
-        const dist=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
-        const newScale=Math.min(5,Math.max(0.2,scale*(dist/lastPinchDist)));
-        const cx=(e.touches[0].clientX+e.touches[1].clientX)/2, cy=(e.touches[0].clientY+e.touches[1].clientY)/2;
-        const rect=canvasWrapper.getBoundingClientRect(); const mx=cx-rect.left, my=cy-rect.top;
-        const ratio=newScale/scale; translateX=mx-ratio*(mx-translateX); translateY=my-ratio*(my-translateY);
-        scale=newScale; lastPinchDist=dist; applyTransform();
-        render();
-      } else if(e.touches.length===1&&isPanning){
-        const dx=e.touches[0].clientX-lastPanX, dy=e.touches[0].clientY-lastPanY;
-        translateX+=dx; translateY+=dy; lastPanX=e.touches[0].clientX; lastPanY=e.touches[0].clientY; applyTransform();
-      }
-    },{passive:false});
-    canvasWrapper.addEventListener('touchend',()=>isPanning=false);
-    canvasWrapper.addEventListener('contextmenu',e=>e.preventDefault());
+      const delta = e.deltaY > 0 ? 0.9 : 1.1;
+      const newScale = Math.min(5, Math.max(0.2, s * delta));
+      const rect = canvasWrapper.getBoundingClientRect();
+      const mx = e.clientX - rect.left;
+      const my = e.clientY - rect.top;
+      const scaleChange = newScale / s;
+      tx = mx - scaleChange * (mx - tx);
+      ty = my - scaleChange * (my - ty);
+      s = newScale;
+      applyTransform();
+    }, {passive: false});
 
-    // 导出（支持色号标注，2倍分辨率）
+    canvasWrapper.addEventListener('touchstart', e => {
+      if(e.touches.length === 2){
+        lastPinchDist = Math.hypot(
+          e.touches[0].clientX - e.touches[1].clientX,
+          e.touches[0].clientY - e.touches[1].clientY
+        );
+      } else if(e.touches.length === 1){
+        lastPanX = e.touches[0].clientX;
+        lastPanY = e.touches[0].clientY;
+      }
+    });
+    canvasWrapper.addEventListener('touchmove', e => {
+      e.preventDefault();
+      if(e.touches.length === 2){
+        const dist = Math.hypot(
+          e.touches[0].clientX - e.touches[1].clientX,
+          e.touches[0].clientY - e.touches[1].clientY
+        );
+        const newScale = Math.min(5, Math.max(0.2, s * (dist / lastPinchDist)));
+        const cx = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+        const cy = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+        const rect = canvasWrapper.getBoundingClientRect();
+        const mx = cx - rect.left;
+        const my = cy - rect.top;
+        const scaleChange = newScale / s;
+        tx = mx - scaleChange * (mx - tx);
+        ty = my - scaleChange * (my - ty);
+        s = newScale;
+        lastPinchDist = dist;
+        applyTransform();
+      } else if(e.touches.length === 1){
+        const dx = e.touches[0].clientX - lastPanX;
+        const dy = e.touches[0].clientY - lastPanY;
+        tx += dx;
+        ty += dy;
+        lastPanX = e.touches[0].clientX;
+        lastPanY = e.touches[0].clientY;
+        applyTransform();
+      }
+    }, {passive: false});
+    canvasWrapper.addEventListener('touchend', ()=>{});
+    canvasWrapper.addEventListener('contextmenu', e => e.preventDefault());
+
+    // 导出（含色号）
     exportBtn.addEventListener('click',()=>{
-      const exportScale = showCodes ? 2 : 1;
-      const expCell = CELL_SIZE * exportScale;
-      const expCanvas = document.createElement('canvas');
-      expCanvas.width = gridWidth * expCell;
-      expCanvas.height = gridHeight * expCell;
-      const ectx = expCanvas.getContext('2d');
-      // 绘制颜色格子
+      const exp = document.createElement('canvas');
+      exp.width = canvas.width; exp.height = canvas.height;
+      const ectx = exp.getContext('2d');
       for(let r=0;r<gridHeight;r++) for(let c=0;c<gridWidth;c++){
         ectx.fillStyle = grid[r][c] || '#FFFFFF';
-        ectx.fillRect(c*expCell, r*expCell, expCell, expCell);
+        ectx.fillRect(c*CELL_SIZE, r*CELL_SIZE, CELL_SIZE, CELL_SIZE);
       }
-      // 网格线
-      ectx.strokeStyle = GRID_COLOR;
-      ectx.lineWidth = 0.5 * exportScale;
-      ectx.beginPath();
-      for(let i=0;i<=gridWidth;i++){ ectx.moveTo(i*expCell,0); ectx.lineTo(i*expCell,expCanvas.height); }
-      for(let j=0;j<=gridHeight;j++){ ectx.moveTo(0,j*expCell); ectx.lineTo(expCanvas.width,j*expCell); }
+      ectx.strokeStyle = GRID_COLOR; ectx.lineWidth = 0.5; ectx.beginPath();
+      for(let i=0;i<=gridWidth;i++){ ectx.moveTo(i*CELL_SIZE,0); ectx.lineTo(i*CELL_SIZE,exp.height); }
+      for(let j=0;j<=gridHeight;j++){ ectx.moveTo(0,j*CELL_SIZE); ectx.lineTo(exp.width,j*CELL_SIZE); }
       ectx.stroke();
-      // 色号
-      if (showCodes) {
-        ectx.font = `bold ${expCell*0.5}px -apple-system, BlinkMacSystemFont, sans-serif`;
+
+      if(showNumbers){
+        ectx.font = 'bold 9px sans-serif';
         ectx.textAlign = 'center';
         ectx.textBaseline = 'middle';
-        for (let r = 0; r < gridHeight; r++) {
-          for (let c = 0; c < gridWidth; c++) {
-            const hex = grid[r][c] || '#FFFFFF';
-            const code = getColorCode(hex);
-            if (!code) continue;
-            const x = c * expCell + expCell/2;
-            const y = r * expCell + expCell/2;
-            const rgb = hexToRgb(hex);
-            const brightness = (rgb[0]*299 + rgb[1]*587 + rgb[2]*114) / 1000;
-            ectx.fillStyle = brightness > 150 ? '#000000' : '#FFFFFF';
+        for(let r=0;r<gridHeight;r++) for(let c=0;c<gridWidth;c++){
+          const color = grid[r][c] || '#FFFFFF';
+          const code = PALETTE_MAP[color];
+          if(code){
+            const x = c*CELL_SIZE + CELL_SIZE/2;
+            const y = r*CELL_SIZE + CELL_SIZE/2;
+            ectx.fillStyle = isLightColor(color) ? '#000' : '#fff';
             ectx.fillText(code, x, y);
           }
         }
       }
-      expCanvas.toBlob(b=>{ const url=URL.createObjectURL(b); const a=document.createElement('a'); a.href=url; a.download='精细拼豆图纸.png'; a.click(); URL.revokeObjectURL(url); });
+
+      exp.toBlob(b=>{
+        const url = URL.createObjectURL(b);
+        const a = document.createElement('a');
+        a.href = url; a.download = 'Artkal拼豆图纸.png'; a.click();
+        URL.revokeObjectURL(url);
+      });
     });
 
-    // 启动
+    window.addEventListener('resize', fitToScreen);
+
     function initApp(){
       const w=80, h=Math.round(80*0.75);
       initGrid(w,h,null); gridWidth=w; gridHeight=h;
