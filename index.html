@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>拼豆图片转换器 · Artkal全色 · 手势优化</title>
+  <title>拼豆图片转换器 · Artkal全色 · 可取消画笔</title>
   <link rel="manifest" href="manifest.json">
   <script>
     if ('serviceWorker' in navigator) {
@@ -99,6 +99,7 @@
     }
     .tool-btn:active { background: #e0e0e0; }
     .tool-btn.active-tool { background: #ffe0cc; border-color: #ff8c42; }
+    .tool-btn.inactive { opacity: 0.5; }
 
     .stats-overlay {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -260,7 +261,8 @@
 
     let grid = [], gridWidth = 80, gridHeight = 60;
     let currentColor = PALETTE[0].hex;
-    let eraserMode = false, symmetryMode = false, currentTool = 'draw';
+    let eraserMode = false, symmetryMode = false;
+    let currentTool = 'draw';   // 'draw' | 'eraser' | 'fill' | 'none'
     let useDither = true;
     let showNumbers = false;
 
@@ -465,7 +467,7 @@
 
     fitBtn.addEventListener('click', fitToScreen);
 
-    // 坐标转换（根据当前tx,ty,s）
+    // 坐标转换
     function getCell(e){
       const rect = canvas.getBoundingClientRect();
       let clientX, clientY;
@@ -516,18 +518,19 @@
       pushHistory(); floodFill(cell.row, cell.col, target, currentColor); render();
     }
 
-    // 绘画事件（仅单指）
+    // 绘画启动（仅当有工具激活且单指）
     function onCanvasStart(e){
       e.preventDefault();
       const touches = e.touches ? e.touches.length : 1;
       if (touches === 2) return; // 双指交给手势
+      if (currentTool === 'none') return; // 无工具，不绘图
 
       if(currentTool === 'fill') handleFill(e);
       else { pushHistory(); handleDraw(e); }
 
       const move = e => {
         e.preventDefault();
-        if (e.touches && e.touches.length !== 1) return; // 多指忽略
+        if (e.touches && e.touches.length !== 1) return;
         if(currentTool !== 'fill') handleDraw(e);
       };
       const up = () => {
@@ -568,9 +571,7 @@
         const midX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
         const midY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
 
-        // 缩放
         const newScale = Math.min(5, Math.max(0.2, pinchStartScale * (dist / pinchStartDist)));
-        // 平移（考虑缩放中心偏移，类似以双指中心为锚点）
         const rect = canvasWrapper.getBoundingClientRect();
         const anchorX = (pinchMidX - rect.left - pinchStartTX) / pinchStartScale;
         const anchorY = (pinchMidY - rect.top - pinchStartTY) / pinchStartScale;
@@ -581,26 +582,43 @@
       }
     }
 
-    function onTouchEnd(e) {
-      if (e.touches.length < 2) {
-        // 双指结束，重置状态
-      }
-    }
+    function onTouchEnd(e) {}
 
-    // 注册事件
+    // 单指平移（无工具时）
+    let panning = false, lastPanX, lastPanY;
+    canvasWrapper.addEventListener('touchstart', e => {
+      if (e.touches.length === 1 && currentTool === 'none') {
+        e.preventDefault();
+        panning = true;
+        lastPanX = e.touches[0].clientX;
+        lastPanY = e.touches[0].clientY;
+      }
+    });
+    canvasWrapper.addEventListener('touchmove', e => {
+      if (panning && e.touches.length === 1) {
+        e.preventDefault();
+        tx += e.touches[0].clientX - lastPanX;
+        ty += e.touches[0].clientY - lastPanY;
+        lastPanX = e.touches[0].clientX;
+        lastPanY = e.touches[0].clientY;
+        applyTransform();
+      }
+    });
+    canvasWrapper.addEventListener('touchend', () => { panning = false; });
+
+    // 注册绘画和双指事件
     canvas.addEventListener('mousedown', onCanvasStart);
     canvas.addEventListener('touchstart', e => {
-      if (e.touches.length === 1) {
-        onCanvasStart(e); // 单指绘画
-      } else {
-        onTouchStart(e); // 双指手势
+      if (e.touches.length === 1 && currentTool !== 'none') {
+        onCanvasStart(e);
+      } else if (e.touches.length === 2) {
+        onTouchStart(e);
       }
     }, {passive: false});
     canvas.addEventListener('touchmove', e => {
       if (e.touches.length === 2) {
         onTouchMove(e);
       }
-      // 单指移动已在onCanvasStart内部绑定
     }, {passive: false});
     canvas.addEventListener('touchend', onTouchEnd);
     canvas.addEventListener('touchcancel', onTouchEnd);
@@ -620,7 +638,7 @@
       applyTransform();
     }, {passive: false});
 
-    // 桌面Ctrl+拖拽平移
+    // 桌面 Ctrl+拖拽平移
     let mousePan = false, lastMouseX, lastMouseY;
     canvasWrapper.addEventListener('mousedown', e => {
       if (e.ctrlKey || e.button === 1 || e.button === 2) {
@@ -648,13 +666,37 @@
     });
     canvasWrapper.addEventListener('contextmenu', e => e.preventDefault());
 
-    function setTool(t){
-      currentTool = t;
-      [drawModeBtn,eraserBtn,fillBtn].forEach(b=>b.classList.remove('active-tool'));
-      if(t==='draw'){ eraserMode=false; drawModeBtn.classList.add('active-tool'); }
-      else if(t==='eraser'){ eraserMode=true; eraserBtn.classList.add('active-tool'); }
-      else if(t==='fill'){ eraserMode=false; fillBtn.classList.add('active-tool'); }
+    // ========== 工具切换（支持取消） ==========
+    function clearToolButtons() {
+      [drawModeBtn, eraserBtn, fillBtn].forEach(b => b.classList.remove('active-tool'));
     }
+
+    function setTool(t){
+      // 如果点击的是当前已激活的工具，则取消，切换到无工具模式
+      if (currentTool === t && t !== 'none') {
+        currentTool = 'none';
+        eraserMode = false;
+        clearToolButtons();
+        return;
+      }
+
+      // 否则设置为新工具
+      currentTool = t;
+      clearToolButtons();
+
+      if (t === 'draw') {
+        eraserMode = false;
+        drawModeBtn.classList.add('active-tool');
+      } else if (t === 'eraser') {
+        eraserMode = true;
+        eraserBtn.classList.add('active-tool');
+      } else if (t === 'fill') {
+        eraserMode = false;
+        fillBtn.classList.add('active-tool');
+      }
+      // 'none' 状态不激活任何按钮
+    }
+
     drawModeBtn.addEventListener('click',()=>setTool('draw'));
     eraserBtn.addEventListener('click',()=>setTool('eraser'));
     fillBtn.addEventListener('click',()=>setTool('fill'));
@@ -721,8 +763,6 @@
       eraser.title = '橡皮';
       eraser.addEventListener('click', ()=>{
         setTool('eraser');
-        document.querySelectorAll('.color-btn').forEach(b=>b.classList.remove('active'));
-        eraser.classList.add('active');
       });
       paletteDiv.appendChild(eraser);
 
@@ -738,11 +778,14 @@
         if(isLightColor(c.hex)) btn.classList.add('light-bg');
 
         btn.addEventListener('click', ()=>{
-          setTool('draw');
           currentColor = c.hex;
+          if (currentTool !== 'draw' && currentTool !== 'none') {
+            setTool('draw');
+          } else if (currentTool === 'none') {
+            setTool('draw');
+          }
           document.querySelectorAll('.color-btn').forEach(b=>b.classList.remove('active'));
           btn.classList.add('active');
-          eraser.classList.remove('active');
         });
         paletteDiv.appendChild(btn);
         if(i === 0) btn.classList.add('active');
@@ -792,7 +835,8 @@
     function initApp(){
       const w=80, h=Math.round(80*0.75);
       initGrid(w,h,null); gridWidth=w; gridHeight=h;
-      updateCanvasSize(); buildPalette(); setTool('draw');
+      updateCanvasSize(); buildPalette();
+      setTool('draw'); // 默认画笔激活
       history=[{grid:grid.map(r=>[...r]),w,h}]; historyIndex=0;
       render();
       fitToScreen();
