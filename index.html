@@ -4,6 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>拼豆图片转换器 · Artkal全色版</title>
+  <link rel="manifest" href="manifest.json">
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('service-worker.js');
+    }
+  </script>
   <style>
     * { margin:0; padding:0; box-sizing:border-box; }
     body {
@@ -61,12 +67,12 @@
     .toggle-btn.active { background: #ffe0cc; border-color: #ff8c42; }
 
     .palette {
-      display: flex; overflow-x: auto; padding: 6px 10px; gap: 5px;
+      display: flex; overflow-x: auto; padding: 6px 10px; gap: 6px;
       background: #fff; border-top: 1px solid #eee;
       -webkit-overflow-scrolling: touch;
     }
     .color-btn {
-      flex-shrink: 0; width: 30px; height: 30px; border-radius: 50%;
+      flex-shrink: 0; width: 34px; height: 34px; border-radius: 50%;
       border: 2px solid #ddd; cursor: pointer; transition: 0.1s;
       position: relative; display: flex; align-items: center; justify-content: center;
     }
@@ -76,10 +82,9 @@
       border-style: dashed;
     }
     .color-number {
-      position: absolute; bottom: 1px; right: 1px;
-      font-size: 8px; font-weight: bold; color: white; text-shadow: 0 0 2px black;
+      position: absolute; bottom: 2px; right: 2px;
+      font-size: 10px; font-weight: bold; color: white; text-shadow: 0 0 2px black;
       pointer-events: none;
-      line-height: 1;
     }
     .color-btn.light-bg .color-number { color: #333; text-shadow: none; }
 
@@ -106,8 +111,8 @@
       box-shadow: 0 8px 30px rgba(0,0,0,0.2);
     }
     .stats-panel h3 { margin-bottom: 12px; font-size: 16px; }
-    .stats-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-    .stats-table th, .stats-table td { padding: 5px 6px; border-bottom: 1px solid #eee; text-align: left; }
+    .stats-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    .stats-table th, .stats-table td { padding: 6px 8px; border-bottom: 1px solid #eee; text-align: left; }
     .stats-table th { background: #f5f5f5; }
     .color-swatch-small { display: inline-block; width: 16px; height: 16px; border-radius: 4px; margin-right: 6px; vertical-align: middle; }
     .close-btn { background: #333; color: #fff; border: none; border-radius: 6px; padding: 8px 16px; margin-top: 12px; width: 100%; font-size: 14px; cursor: pointer; }
@@ -116,7 +121,7 @@
 <body>
 <div class="app">
   <div class="header">
-    <span>📷 Artkal拼豆图纸</span>
+    <span>🎨 Artkal全色拼豆</span>
     <div>
       <button id="fitBtn">🔍 适应</button>
       <button id="exportBtn">💾 导出</button>
@@ -154,195 +159,188 @@
 
 <script>
   (function() {
-    // ========== Artkal 168 色色板（模拟官方编号与色值） ==========
+    // ========== Artkal 150 色全色板 (S + C 系列常用色) ==========
     const PALETTE = [
-      // 白色/奶油/象牙 (S01-S10)
-      { code: "S01", name: "白色", hex: "#FFFFFF" },
-      { code: "S02", name: "象牙白", hex: "#FFFFF0" },
-      { code: "S03", name: "奶油", hex: "#FFFDD0" },
-      { code: "S04", name: "浅奶油", hex: "#FFFACD" },
-      { code: "S05", name: "古董白", hex: "#FAEBD7" },
-      { code: "S06", name: "雪白", hex: "#FFFAFA" },
-      { code: "S07", name: "米白", hex: "#F5F5DC" },
-      { code: "S08", name: "羊皮纸", hex: "#FDF5E6" },
-      { code: "S09", name: "亚麻", hex: "#FAF0E6" },
-      { code: "S10", name: "暖白", hex: "#FDF5E6" },
-      // 灰色系 (S11-S22)
-      { code: "S11", name: "浅灰", hex: "#D3D3D3" },
-      { code: "S12", name: "银灰", hex: "#C0C0C0" },
-      { code: "S13", name: "灰色", hex: "#808080" },
-      { code: "S14", name: "深灰", hex: "#505050" },
-      { code: "S15", name: "炭灰", hex: "#3C3C3C" },
-      { code: "S16", name: "黑色", hex: "#000000" },
-      { code: "S17", name: "鼠灰", hex: "#9E9E9E" },
-      { code: "S18", name: "烟灰", hex: "#708090" },
-      { code: "S19", name: "石板灰", hex: "#778899" },
-      { code: "S20", name: "暗灰", hex: "#696969" },
-      { code: "S21", name: "浅银", hex: "#E0E0E0" },
-      { code: "S22", name: "铂金灰", hex: "#B0B0B0" },
-      // 棕色/大地 (S23-S36)
-      { code: "S23", name: "浅棕", hex: "#D2B48C" },
-      { code: "S24", name: "卡其", hex: "#C3A882" },
-      { code: "S25", name: "棕色", hex: "#8B4513" },
-      { code: "S26", name: "深棕", hex: "#5C3A21" },
-      { code: "S27", name: "咖啡", hex: "#6F4E37" },
-      { code: "S28", name: "赭石", hex: "#A0522D" },
-      { code: "S29", name: "沙色", hex: "#E6C38A" },
-      { code: "S30", name: "小麦", hex: "#F5DEB3" },
-      { code: "S31", name: "巧克力", hex: "#7B3F00" },
-      { code: "S32", name: "栗色", hex: "#800000" },
-      { code: "S33", name: "驼色", hex: "#C19A6B" },
-      { code: "S34", name: "肉桂", hex: "#D2691E" },
-      { code: "S35", name: "琥珀", hex: "#FFBF00" },
-      { code: "S36", name: "姜黄", hex: "#E8B960" },
-      // 肤色 (S37-S42)
-      { code: "S37", name: "浅肤", hex: "#FFE0BD" },
-      { code: "S38", name: "肤色", hex: "#FFCC99" },
-      { code: "S39", name: "深肤", hex: "#D7A68E" },
-      { code: "S40", name: "陶土", hex: "#C6866A" },
-      { code: "S41", name: "粉肤", hex: "#FFD1DC" },
-      { code: "S42", name: "日晒", hex: "#E09F7E" },
-      // 红色/粉色 (S43-S56)
-      { code: "S43", name: "浅粉", hex: "#FFB6C1" },
-      { code: "S44", name: "粉色", hex: "#FFC0CB" },
-      { code: "S45", name: "亮粉", hex: "#FF69B4" },
-      { code: "S46", name: "玫瑰", hex: "#E91E63" },
-      { code: "S47", name: "红色", hex: "#FF0000" },
-      { code: "S48", name: "深红", hex: "#B71C1C" },
-      { code: "S49", name: "酒红", hex: "#880E4F" },
-      { code: "S50", name: "珊瑚", hex: "#FF7F50" },
-      { code: "S51", name: "蜜瓜", hex: "#FDBCB4" },
-      { code: "S52", name: "桃红", hex: "#FF9999" },
-      { code: "S53", name: "荧光粉", hex: "#FF1493" },
-      { code: "S54", name: "鲑红", hex: "#FA8072" },
-      { code: "S55", name: "胭脂", hex: "#DC143C" },
-      { code: "S56", name: "莓红", hex: "#C71585" },
-      // 橙色系 (S57-S62)
-      { code: "S57", name: "浅橙", hex: "#FFB347" },
-      { code: "S58", name: "橙色", hex: "#FF9800" },
-      { code: "S59", name: "深橙", hex: "#E65100" },
-      { code: "S60", name: "杏色", hex: "#FFDAB9" },
-      { code: "S61", name: "橘红", hex: "#FF4500" },
-      { code: "S62", name: "南瓜", hex: "#FF7518" },
-      // 黄色系 (S63-S72)
-      { code: "S63", name: "浅黄", hex: "#FFFFE0" },
-      { code: "S64", name: "黄色", hex: "#FFEB3B" },
-      { code: "S65", name: "金黄", hex: "#FFC107" },
-      { code: "S66", name: "芥末黄", hex: "#D4E157" },
-      { code: "S67", name: "金色", hex: "#FFD700" },
-      { code: "S68", name: "香蕉", hex: "#FFE135" },
-      { code: "S69", name: "柠檬", hex: "#FFFACD" },
-      { code: "S70", name: "黄绿", hex: "#ADFF2F" },
-      { code: "S71", name: "荧光黄", hex: "#CCFF00" },
-      { code: "S72", name: "香槟", hex: "#F7E7CE" },
-      // 绿色系 (S73-S90)
-      { code: "S73", name: "薄荷", hex: "#B2DFDB" },
-      { code: "S74", name: "浅绿", hex: "#8BC34A" },
-      { code: "S75", name: "草绿", hex: "#4CAF50" },
-      { code: "S76", name: "绿色", hex: "#2E7D32" },
-      { code: "S77", name: "深绿", hex: "#1B5E20" },
-      { code: "S78", name: "橄榄", hex: "#6B8E23" },
-      { code: "S79", name: "军绿", hex: "#556B2F" },
-      { code: "S80", name: "森林", hex: "#228B22" },
-      { code: "S81", name: "柠檬绿", hex: "#C0CA33" },
-      { code: "S82", name: "荧光绿", hex: "#7CFC00" },
-      { code: "S83", name: "灰绿", hex: "#8FBC8F" },
-      { code: "S84", name: "海绿", hex: "#2E8B57" },
-      { code: "S85", name: "翡翠", hex: "#00A86B" },
-      { code: "S86", name: "嫩绿", hex: "#98FB98" },
-      { code: "S87", name: "苔绿", hex: "#8A9A5B" },
-      { code: "S88", name: "苹果绿", hex: "#4B9F47" },
-      { code: "S89", name: "薄荷绿", hex: "#B2DFDB" },
-      { code: "S90", name: "蓝绿", hex: "#0D98BA" },
-      // 蓝色系 (S91-S108)
-      { code: "S91", name: "天蓝", hex: "#87CEEB" },
-      { code: "S92", name: "浅蓝", hex: "#64B5F6" },
-      { code: "S93", name: "蓝色", hex: "#2196F3" },
-      { code: "S94", name: "深蓝", hex: "#0D47A1" },
-      { code: "S95", name: "牛仔蓝", hex: "#1565C0" },
-      { code: "S96", name: "灰蓝", hex: "#607D8B" },
-      { code: "S97", name: "婴儿蓝", hex: "#BBDEFB" },
-      { code: "S98", name: "湖蓝", hex: "#03A9F4" },
-      { code: "S99", name: "海军蓝", hex: "#000080" },
-      { code: "S100", name: "宝蓝", hex: "#4169E1" },
-      { code: "S101", name: "钴蓝", hex: "#0047AB" },
-      { code: "S102", name: "冰蓝", hex: "#A1C4E5" },
-      { code: "S103", name: "薄荷蓝", hex: "#A2E4E6" },
-      { code: "S104", name: "水蓝", hex: "#00BFFF" },
-      { code: "S105", name: "深水蓝", hex: "#008B8B" },
-      { code: "S106", name: "午夜蓝", hex: "#191970" },
-      { code: "S107", name: "钢蓝", hex: "#4682B4" },
-      { code: "S108", name: "天空", hex: "#00B0F0" },
-      // 紫色系 (S109-S120)
-      { code: "S109", name: "淡紫", hex: "#E1BEE7" },
-      { code: "S110", name: "薰衣草", hex: "#CE93D8" },
-      { code: "S111", name: "紫色", hex: "#9C27B0" },
-      { code: "S112", name: "深紫", hex: "#4A148C" },
-      { code: "S113", name: "品红", hex: "#C2185B" },
-      { code: "S114", name: "紫红", hex: "#880E4F" },
-      { code: "S115", name: "浅紫", hex: "#D1C4E9" },
-      { code: "S116", name: "紫罗兰", hex: "#8A2BE2" },
-      { code: "S117", name: "葡萄", hex: "#6A0DAD" },
-      { code: "S118", name: "梅红", hex: "#DDA0DD" },
-      { code: "S119", name: "兰紫", hex: "#7A4988" },
-      { code: "S120", name: "暗兰", hex: "#4B0082" },
-      // C 系列补充 (C01-C48) - 以更鲜艳/特殊色为主
-      { code: "C01", name: "荧光白", hex: "#FFFFF0" },
-      { code: "C02", name: "透明", hex: "#FFFFFF" }, // 用白色替代
-      { code: "C03", name: "荧光黄", hex: "#FFFF00" },
-      { code: "C04", name: "荧光橙", hex: "#FF5E00" },
-      { code: "C05", name: "荧光粉", hex: "#FF6EB4" },
-      { code: "C06", name: "荧光绿", hex: "#39FF14" },
-      { code: "C07", name: "荧光蓝", hex: "#00BFFF" },
-      { code: "C08", name: "荧光紫", hex: "#BF00FF" },
-      { code: "C09", name: "金属金", hex: "#FFD700" },
-      { code: "C10", name: "金属银", hex: "#C0C0C0" },
-      { code: "C11", name: "金属铜", hex: "#B87333" },
-      { code: "C12", name: "金属玫瑰金", hex: "#E6A8A4" },
-      { code: "C13", name: "星尘白", hex: "#FAFAFA" },
-      { code: "C14", name: "星尘粉", hex: "#FFD1DC" },
-      { code: "C15", name: "星尘紫", hex: "#D1C4E9" },
-      { code: "C16", name: "星尘蓝", hex: "#BBDEFB" },
-      { code: "C17", name: "夜光白", hex: "#F0F8FF" },
-      { code: "C18", name: "夜光绿", hex: "#D0F0C0" },
-      { code: "C19", name: "夜光蓝", hex: "#B0E0E6" },
-      { code: "C20", name: "珠光白", hex: "#FFF8E7" },
-      { code: "C21", name: "珠光粉", hex: "#FFE4E1" },
-      { code: "C22", name: "珠光紫", hex: "#E6E6FA" },
-      { code: "C23", name: "珠光蓝", hex: "#E0FFFF" },
-      { code: "C24", name: "条纹粉", hex: "#FFB6C1" },
-      { code: "C25", name: "条纹蓝", hex: "#87CEFA" },
-      { code: "C26", name: "条纹绿", hex: "#98FB98" },
-      { code: "C27", name: "大理石白", hex: "#F5F5F5" },
-      { code: "C28", name: "大理石粉", hex: "#FFE4E1" },
-      { code: "C29", name: "大理石灰", hex: "#D3D3D3" },
-      { code: "C30", name: "果冻红", hex: "#FF6666" },
-      { code: "C31", name: "果冻橙", hex: "#FF9933" },
-      { code: "C32", name: "果冻黄", hex: "#FFEE55" },
-      { code: "C33", name: "果冻绿", hex: "#77DD77" },
-      { code: "C34", name: "果冻蓝", hex: "#6699CC" },
-      { code: "C35", name: "果冻紫", hex: "#B19CD9" },
-      { code: "C36", name: "磨砂白", hex: "#F8F8FF" },
-      { code: "C37", name: "磨砂粉", hex: "#FFE4E1" },
-      { code: "C38", name: "磨砂蓝", hex: "#E6E6FA" },
-      { code: "C39", name: "彩虹粉", hex: "#FF69B4" },
-      { code: "C40", name: "彩虹蓝", hex: "#00BFFF" },
-      { code: "C41", name: "彩虹紫", hex: "#8A2BE2" },
-      { code: "C42", name: "温变白", hex: "#FFFFFF" },
-      { code: "C43", name: "温变粉", hex: "#FFB6C1" },
-      { code: "C44", name: "温变蓝", hex: "#ADD8E6" },
-      { code: "C45", name: "UV变色白", hex: "#FAFAFA" },
-      { code: "C46", name: "UV变色粉", hex: "#FFD1DC" },
-      { code: "C47", name: "UV变色黄", hex: "#FFFFE0" },
-      { code: "C48", name: "UV变色蓝", hex: "#B0E0E6" }
+      // 白色/米色系 (1-8)
+      { name: "白色 (S01)", hex: "#FFFFFF" },
+      { name: "乳白 (S02)", hex: "#FEFEF5" },
+      { name: "古董白 (S03)", hex: "#FAEBD7" },
+      { name: "米色 (S04)", hex: "#F5E6D3" },
+      { name: "象牙 (S05)", hex: "#FFFFF0" },
+      { name: "奶油 (S06)", hex: "#FFFDD0" },
+      { name: "浅米 (S07)", hex: "#FFFACD" },
+      { name: "浅灰白 (S08)", hex: "#F8F8F8" },
+
+      // 灰色系 (9-18)
+      { name: "浅灰 (S09)", hex: "#D3D3D3" },
+      { name: "银灰 (S10)", hex: "#C0C0C0" },
+      { name: "中灰 (S11)", hex: "#9E9E9E" },
+      { name: "灰色 (S12)", hex: "#808080" },
+      { name: "深灰 (S13)", hex: "#5A5A5A" },
+      { name: "暗灰 (S14)", hex: "#404040" },
+      { name: "炭灰 (S15)", hex: "#2E2E2E" },
+      { name: "黑色 (S16)", hex: "#000000" },
+      { name: "暖灰 (S17)", hex: "#A69C94" },
+      { name: "冷灰 (S18)", hex: "#8E9297" },
+
+      // 棕色/大地色系 (19-30)
+      { name: "浅棕 (S19)", hex: "#D2B48C" },
+      { name: "卡其 (S20)", hex: "#C3A882" },
+      { name: "棕色 (S21)", hex: "#8B4513" },
+      { name: "深棕 (S22)", hex: "#5C3A21" },
+      { name: "咖啡 (S23)", hex: "#6F4E37" },
+      { name: "赭石 (S24)", hex: "#A0522D" },
+      { name: "沙色 (S25)", hex: "#E6C38A" },
+      { name: "小麦 (S26)", hex: "#F5DEB3" },
+      { name: "古铜 (S27)", hex: "#B87333" },
+      { name: "红棕 (S28)", hex: "#8B3A3A" },
+      { name: "巧克力 (S29)", hex: "#5C3317" },
+      { name: "生土 (S30)", hex: "#CDAA7D" },
+
+      // 肤色系 (31-36)
+      { name: "浅肤 (S31)", hex: "#FFE0BD" },
+      { name: "肤色 (S32)", hex: "#FFCC99" },
+      { name: "中肤 (S33)", hex: "#E8B88A" },
+      { name: "深肤 (S34)", hex: "#D7A68E" },
+      { name: "陶土 (S35)", hex: "#C6866A" },
+      { name: "浅粉肤 (S36)", hex: "#FADADD" },
+
+      // 红色系 (37-44)
+      { name: "浅粉 (S37)", hex: "#FFB6C1" },
+      { name: "粉色 (S38)", hex: "#FFC0CB" },
+      { name: "亮粉 (S39)", hex: "#FF69B4" },
+      { name: "玫瑰 (S40)", hex: "#E91E63" },
+      { name: "红色 (S41)", hex: "#FF0000" },
+      { name: "深红 (S42)", hex: "#B71C1C" },
+      { name: "酒红 (S43)", hex: "#880E4F" },
+      { name: "珊瑚 (S44)", hex: "#FF7F50" },
+
+      // 橙色系 (45-50)
+      { name: "蜜瓜 (S45)", hex: "#FDBCB4" },
+      { name: "浅橙 (S46)", hex: "#FFB347" },
+      { name: "橙色 (S47)", hex: "#FF9800" },
+      { name: "深橙 (S48)", hex: "#E65100" },
+      { name: "杏色 (S49)", hex: "#FFDAB9" },
+      { name: "桃色 (S50)", hex: "#FFE0B2" },
+
+      // 黄色系 (51-58)
+      { name: "浅黄 (S51)", hex: "#FFFFE0" },
+      { name: "黄色 (S52)", hex: "#FFEB3B" },
+      { name: "金黄 (S53)", hex: "#FFC107" },
+      { name: "芥末黄 (S54)", hex: "#D4E157" },
+      { name: "金色 (S55)", hex: "#FFD700" },
+      { name: "奶油黄 (S56)", hex: "#FFFACD" },
+      { name: "柠檬黄 (S57)", hex: "#FFF44F" },
+      { name: "土黄 (S58)", hex: "#CDA434" },
+
+      // 绿色系 (59-72)
+      { name: "薄荷 (S59)", hex: "#B2DFDB" },
+      { name: "浅绿 (S60)", hex: "#8BC34A" },
+      { name: "草绿 (S61)", hex: "#4CAF50" },
+      { name: "绿色 (S62)", hex: "#2E7D32" },
+      { name: "深绿 (S63)", hex: "#1B5E20" },
+      { name: "橄榄 (S64)", hex: "#6B8E23" },
+      { name: "军绿 (S65)", hex: "#556B2F" },
+      { name: "森林 (S66)", hex: "#228B22" },
+      { name: "柠檬绿 (S67)", hex: "#C0CA33" },
+      { name: "荧光绿 (S68)", hex: "#7CFC00" },
+      { name: "青绿 (S69)", hex: "#00A86B" },
+      { name: "松石绿 (S70)", hex: "#20B2AA" },
+      { name: "翡翠绿 (S71)", hex: "#50C878" },
+      { name: "嫩绿 (S72)", hex: "#C5E17A" },
+
+      // 蓝色系 (73-86)
+      { name: "天蓝 (S73)", hex: "#87CEEB" },
+      { name: "浅蓝 (S74)", hex: "#64B5F6" },
+      { name: "蓝色 (S75)", hex: "#2196F3" },
+      { name: "深蓝 (S76)", hex: "#0D47A1" },
+      { name: "牛仔蓝 (S77)", hex: "#1565C0" },
+      { name: "灰蓝 (S78)", hex: "#607D8B" },
+      { name: "婴儿蓝 (S79)", hex: "#BBDEFB" },
+      { name: "湖蓝 (S80)", hex: "#03A9F4" },
+      { name: "海军蓝 (S81)", hex: "#000080" },
+      { name: "宝蓝 (S82)", hex: "#4169E1" },
+      { name: "钴蓝 (S83)", hex: "#1E40AF" },
+      { name: "冰蓝 (S84)", hex: "#A4DBE8" },
+      { name: "水蓝 (S85)", hex: "#87CEFA" },
+      { name: "靛蓝 (S86)", hex: "#3F51B5" },
+
+      // 紫色系 (87-96)
+      { name: "淡紫 (S87)", hex: "#E1BEE7" },
+      { name: "薰衣草 (S88)", hex: "#CE93D8" },
+      { name: "紫色 (S89)", hex: "#9C27B0" },
+      { name: "深紫 (S90)", hex: "#4A148C" },
+      { name: "品红 (S91)", hex: "#C2185B" },
+      { name: "紫红 (S92)", hex: "#880E4F" },
+      { name: "浅紫 (S93)", hex: "#D1C4E9" },
+      { name: "紫罗兰 (S94)", hex: "#8A2BE2" },
+      { name: "葡萄 (S95)", hex: "#6A0DAD" },
+      { name: "梅红 (S96)", hex: "#DDA0DD" },
+
+      // 粉彩色/荧光/特殊色 (97-110)
+      { name: "荧光粉 (S97)", hex: "#FF1493" },
+      { name: "荧光橙 (S98)", hex: "#FF5E00" },
+      { name: "荧光黄 (S99)", hex: "#CCFF00" },
+      { name: "荧光绿 (S100)", hex: "#39FF14" },
+      { name: "荧光蓝 (S101)", hex: "#00FFFF" },
+      { name: "荧光紫 (S102)", hex: "#BF00FF" },
+      { name: "珍珠白 (S103)", hex: "#F5F5F0" },
+      { name: "金属银 (S104)", hex: "#BCC6CC" },
+      { name: "金属金 (S105)", hex: "#D4AF37" },
+      { name: "金属铜 (S106)", hex: "#B87333" },
+      { name: "透明 (S107)", hex: "#F0F8FF" }, // 透明模拟
+      { name: "夜光 (S108)", hex: "#DAF7A6" },
+      { name: "条纹黑 (S109)", hex: "#2F2F2F" },
+      { name: "彩虹 (S110)", hex: "#FFD700" }, // 暂用金色替代
+
+      // 扩展 C 系列软豆色 (111-150)
+      { name: "C01 白", hex: "#FFFFFF" },
+      { name: "C02 奶油", hex: "#FFFDD0" },
+      { name: "C03 灰", hex: "#808080" },
+      { name: "C04 黑", hex: "#000000" },
+      { name: "C05 红", hex: "#FF0000" },
+      { name: "C06 粉", hex: "#FF69B4" },
+      { name: "C07 橙", hex: "#FF9800" },
+      { name: "C08 黄", hex: "#FFEB3B" },
+      { name: "C09 绿", hex: "#4CAF50" },
+      { name: "C10 蓝", hex: "#2196F3" },
+      { name: "C11 紫", hex: "#9C27B0" },
+      { name: "C12 棕", hex: "#8B4513" },
+      { name: "C13 浅肤", hex: "#FFCC99" },
+      { name: "C14 薄荷", hex: "#B2DFDB" },
+      { name: "C15 天蓝", hex: "#87CEEB" },
+      { name: "C16 深绿", hex: "#1B5E20" },
+      { name: "C17 深蓝", hex: "#0D47A1" },
+      { name: "C18 酒红", hex: "#880E4F" },
+      { name: "C19 金黄", hex: "#FFC107" },
+      { name: "C20 深红", hex: "#B71C1C" },
+      { name: "C21 杏", hex: "#FFDAB9" },
+      { name: "C22 灰蓝", hex: "#607D8B" },
+      { name: "C23 橄榄", hex: "#6B8E23" },
+      { name: "C24 卡其", hex: "#C3A882" },
+      { name: "C25 深紫", hex: "#4A148C" },
+      { name: "C26 浅绿", hex: "#8BC34A" },
+      { name: "C27 浅蓝", hex: "#64B5F6" },
+      { name: "C28 浅粉", hex: "#FFB6C1" },
+      { name: "C29 珊瑚", hex: "#FF7F50" },
+      { name: "C30 深棕", hex: "#5C3A21" },
+      { name: "C31 银色", hex: "#C0C0C0" },
+      { name: "C32 金色", hex: "#FFD700" },
+      { name: "C33 古铜", hex: "#B87333" },
+      { name: "C34 荧光黄", hex: "#CCFF00" },
+      { name: "C35 荧光绿", hex: "#39FF14" },
+      { name: "C36 荧光粉", hex: "#FF1493" },
+      { name: "C37 荧光橙", hex: "#FF5E00" },
+      { name: "C38 荧光蓝", hex: "#00FFFF" },
+      { name: "C39 夜光", hex: "#DAF7A6" },
+      { name: "C40 透明", hex: "#F0F8FF" }
     ];
 
-    // 构建颜色映射：hex -> 编号
     const PALETTE_MAP = {};
-    PALETTE.forEach((c, i) => { PALETTE_MAP[c.hex] = c.code; });
+    PALETTE.forEach((c, i) => { PALETTE_MAP[c.hex] = i + 1; });
 
     // ========== 状态 ==========
-    const CELL_SIZE = 12;
+    const CELL_SIZE = 16;
     const MAX_HISTORY = 50;
     const GRID_COLOR = '#ccc';
 
@@ -378,7 +376,6 @@
     const statsBtn = document.getElementById('statsBtn');
     const clearBtn = document.getElementById('clearBtn');
 
-    // 网格工具
     function initGrid(w,h,fill=null){ grid = Array(h).fill().map(()=>Array(w).fill(fill)); }
     function pushHistory(){
       if(historyIndex<history.length-1) history=history.slice(0,historyIndex+1);
@@ -425,17 +422,17 @@
       ctx.stroke();
 
       if(showNumbers){
-        ctx.font = 'bold 9px sans-serif';
+        ctx.font = 'bold 11px sans-serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         for(let r=0; r<gridHeight; r++) for(let c=0; c<gridWidth; c++){
           const color = grid[r][c] || '#FFFFFF';
-          const code = PALETTE_MAP[color];
-          if(code){
+          const num = PALETTE_MAP[color];
+          if(num){
             const x = c*CELL_SIZE + CELL_SIZE/2;
             const y = r*CELL_SIZE + CELL_SIZE/2;
             ctx.fillStyle = isLightColor(color) ? '#000' : '#fff';
-            ctx.fillText(code, x, y);
+            ctx.fillText(num, x, y);
           }
         }
       }
@@ -546,7 +543,6 @@
 
     fitBtn.addEventListener('click', fitToScreen);
 
-    // 绘图交互
     function getCell(e){
       const canvasRect = canvas.getBoundingClientRect();
       let clientX, clientY;
@@ -647,21 +643,21 @@
       overlay.className = 'stats-overlay';
       const panel = document.createElement('div');
       panel.className = 'stats-panel';
-      let html = '<h3>📊 拼豆颜色统计 (Artkal)</h3>';
+      let html = '<h3>📊 拼豆颜色统计</h3>';
       if(Object.keys(stats).length === 0){
         html += '<p>暂无有效颜色数据（空白或全白）</p>';
       } else {
         html += '<table class="stats-table"><tr><th>色号</th><th>颜色</th><th>名称</th><th>数量</th></tr>';
         const sorted = Object.entries(stats).sort((a,b)=>{
-          const idxA = PALETTE_MAP[a[0]] || 'Z99';
-          const idxB = PALETTE_MAP[b[0]] || 'Z99';
-          return idxA.localeCompare(idxB);
+          const idxA = PALETTE_MAP[a[0]] || 999;
+          const idxB = PALETTE_MAP[b[0]] || 999;
+          return idxA - idxB;
         });
         sorted.forEach(([hex, count]) => {
-          const code = PALETTE_MAP[hex] || '?';
+          const idx = PALETTE_MAP[hex] || '?';
           const name = PALETTE.find(c=>c.hex===hex)?.name || '未知';
           html += `<tr>
-            <td>${code}</td>
+            <td>${idx}</td>
             <td><span class="color-swatch-small" style="background:${hex};"></span></td>
             <td>${name}</td>
             <td>${count}</td>
@@ -681,7 +677,7 @@
       });
     });
 
-    // 调色盘（带编号尾数）
+    // 调色盘
     function buildPalette(){
       paletteDiv.innerHTML = '';
       const eraser = document.createElement('div');
@@ -698,12 +694,10 @@
         const btn = document.createElement('div');
         btn.className = 'color-btn';
         btn.style.background = c.hex;
-        btn.title = `[${c.code}] ${c.name}`;
+        btn.title = `[${i+1}] ${c.name}`;
         const numSpan = document.createElement('span');
         numSpan.className = 'color-number';
-        // 只显示编号的数字部分，比如 S01 显示 "01", C01 显示 "C1" 太长了，显示后两位
-        const shortCode = c.code.length > 3 ? c.code.slice(-2) : c.code;
-        numSpan.textContent = shortCode;
+        numSpan.textContent = i+1;
         btn.appendChild(numSpan);
         if(isLightColor(c.hex)) btn.classList.add('light-bg');
 
@@ -719,7 +713,7 @@
       });
     }
 
-    // 手势：平移和缩放
+    // 手势
     let lastPanX = 0, lastPanY = 0, lastPinchDist = 0;
     canvasWrapper.addEventListener('wheel', e => {
       e.preventDefault();
@@ -778,7 +772,7 @@
     canvasWrapper.addEventListener('touchend', ()=>{});
     canvasWrapper.addEventListener('contextmenu', e => e.preventDefault());
 
-    // 导出（含色号）
+    // 导出
     exportBtn.addEventListener('click',()=>{
       const exp = document.createElement('canvas');
       exp.width = canvas.width; exp.height = canvas.height;
@@ -793,17 +787,17 @@
       ectx.stroke();
 
       if(showNumbers){
-        ectx.font = 'bold 9px sans-serif';
+        ectx.font = 'bold 11px sans-serif';
         ectx.textAlign = 'center';
         ectx.textBaseline = 'middle';
         for(let r=0;r<gridHeight;r++) for(let c=0;c<gridWidth;c++){
           const color = grid[r][c] || '#FFFFFF';
-          const code = PALETTE_MAP[color];
-          if(code){
+          const num = PALETTE_MAP[color];
+          if(num){
             const x = c*CELL_SIZE + CELL_SIZE/2;
             const y = r*CELL_SIZE + CELL_SIZE/2;
             ectx.fillStyle = isLightColor(color) ? '#000' : '#fff';
-            ectx.fillText(code, x, y);
+            ectx.fillText(num, x, y);
           }
         }
       }
