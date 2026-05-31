@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>拼豆图片转换器 · Artkal全色版</title>
+  <title>拼豆图片转换器 · Artkal全色 · 手势优化</title>
   <link rel="manifest" href="manifest.json">
   <script>
     if ('serviceWorker' in navigator) {
@@ -159,181 +159,95 @@
 
 <script>
   (function() {
-    // ========== Artkal 150 色全色板 (S + C 系列常用色) ==========
+    // ========== Artkal 150 色全色板 ==========
     const PALETTE = [
       // 白色/米色系 (1-8)
-      { name: "白色 (S01)", hex: "#FFFFFF" },
-      { name: "乳白 (S02)", hex: "#FEFEF5" },
-      { name: "古董白 (S03)", hex: "#FAEBD7" },
-      { name: "米色 (S04)", hex: "#F5E6D3" },
-      { name: "象牙 (S05)", hex: "#FFFFF0" },
-      { name: "奶油 (S06)", hex: "#FFFDD0" },
-      { name: "浅米 (S07)", hex: "#FFFACD" },
-      { name: "浅灰白 (S08)", hex: "#F8F8F8" },
-
+      { name: "白色 (S01)", hex: "#FFFFFF" },{ name: "乳白 (S02)", hex: "#FEFEF5" },
+      { name: "古董白 (S03)", hex: "#FAEBD7" },{ name: "米色 (S04)", hex: "#F5E6D3" },
+      { name: "象牙 (S05)", hex: "#FFFFF0" },{ name: "奶油 (S06)", hex: "#FFFDD0" },
+      { name: "浅米 (S07)", hex: "#FFFACD" },{ name: "浅灰白 (S08)", hex: "#F8F8F8" },
       // 灰色系 (9-18)
-      { name: "浅灰 (S09)", hex: "#D3D3D3" },
-      { name: "银灰 (S10)", hex: "#C0C0C0" },
-      { name: "中灰 (S11)", hex: "#9E9E9E" },
-      { name: "灰色 (S12)", hex: "#808080" },
-      { name: "深灰 (S13)", hex: "#5A5A5A" },
-      { name: "暗灰 (S14)", hex: "#404040" },
-      { name: "炭灰 (S15)", hex: "#2E2E2E" },
-      { name: "黑色 (S16)", hex: "#000000" },
-      { name: "暖灰 (S17)", hex: "#A69C94" },
-      { name: "冷灰 (S18)", hex: "#8E9297" },
-
+      { name: "浅灰 (S09)", hex: "#D3D3D3" },{ name: "银灰 (S10)", hex: "#C0C0C0" },
+      { name: "中灰 (S11)", hex: "#9E9E9E" },{ name: "灰色 (S12)", hex: "#808080" },
+      { name: "深灰 (S13)", hex: "#5A5A5A" },{ name: "暗灰 (S14)", hex: "#404040" },
+      { name: "炭灰 (S15)", hex: "#2E2E2E" },{ name: "黑色 (S16)", hex: "#000000" },
+      { name: "暖灰 (S17)", hex: "#A69C94" },{ name: "冷灰 (S18)", hex: "#8E9297" },
       // 棕色/大地色系 (19-30)
-      { name: "浅棕 (S19)", hex: "#D2B48C" },
-      { name: "卡其 (S20)", hex: "#C3A882" },
-      { name: "棕色 (S21)", hex: "#8B4513" },
-      { name: "深棕 (S22)", hex: "#5C3A21" },
-      { name: "咖啡 (S23)", hex: "#6F4E37" },
-      { name: "赭石 (S24)", hex: "#A0522D" },
-      { name: "沙色 (S25)", hex: "#E6C38A" },
-      { name: "小麦 (S26)", hex: "#F5DEB3" },
-      { name: "古铜 (S27)", hex: "#B87333" },
-      { name: "红棕 (S28)", hex: "#8B3A3A" },
-      { name: "巧克力 (S29)", hex: "#5C3317" },
-      { name: "生土 (S30)", hex: "#CDAA7D" },
-
+      { name: "浅棕 (S19)", hex: "#D2B48C" },{ name: "卡其 (S20)", hex: "#C3A882" },
+      { name: "棕色 (S21)", hex: "#8B4513" },{ name: "深棕 (S22)", hex: "#5C3A21" },
+      { name: "咖啡 (S23)", hex: "#6F4E37" },{ name: "赭石 (S24)", hex: "#A0522D" },
+      { name: "沙色 (S25)", hex: "#E6C38A" },{ name: "小麦 (S26)", hex: "#F5DEB3" },
+      { name: "古铜 (S27)", hex: "#B87333" },{ name: "红棕 (S28)", hex: "#8B3A3A" },
+      { name: "巧克力 (S29)", hex: "#5C3317" },{ name: "生土 (S30)", hex: "#CDAA7D" },
       // 肤色系 (31-36)
-      { name: "浅肤 (S31)", hex: "#FFE0BD" },
-      { name: "肤色 (S32)", hex: "#FFCC99" },
-      { name: "中肤 (S33)", hex: "#E8B88A" },
-      { name: "深肤 (S34)", hex: "#D7A68E" },
-      { name: "陶土 (S35)", hex: "#C6866A" },
-      { name: "浅粉肤 (S36)", hex: "#FADADD" },
-
+      { name: "浅肤 (S31)", hex: "#FFE0BD" },{ name: "肤色 (S32)", hex: "#FFCC99" },
+      { name: "中肤 (S33)", hex: "#E8B88A" },{ name: "深肤 (S34)", hex: "#D7A68E" },
+      { name: "陶土 (S35)", hex: "#C6866A" },{ name: "浅粉肤 (S36)", hex: "#FADADD" },
       // 红色系 (37-44)
-      { name: "浅粉 (S37)", hex: "#FFB6C1" },
-      { name: "粉色 (S38)", hex: "#FFC0CB" },
-      { name: "亮粉 (S39)", hex: "#FF69B4" },
-      { name: "玫瑰 (S40)", hex: "#E91E63" },
-      { name: "红色 (S41)", hex: "#FF0000" },
-      { name: "深红 (S42)", hex: "#B71C1C" },
-      { name: "酒红 (S43)", hex: "#880E4F" },
-      { name: "珊瑚 (S44)", hex: "#FF7F50" },
-
+      { name: "浅粉 (S37)", hex: "#FFB6C1" },{ name: "粉色 (S38)", hex: "#FFC0CB" },
+      { name: "亮粉 (S39)", hex: "#FF69B4" },{ name: "玫瑰 (S40)", hex: "#E91E63" },
+      { name: "红色 (S41)", hex: "#FF0000" },{ name: "深红 (S42)", hex: "#B71C1C" },
+      { name: "酒红 (S43)", hex: "#880E4F" },{ name: "珊瑚 (S44)", hex: "#FF7F50" },
       // 橙色系 (45-50)
-      { name: "蜜瓜 (S45)", hex: "#FDBCB4" },
-      { name: "浅橙 (S46)", hex: "#FFB347" },
-      { name: "橙色 (S47)", hex: "#FF9800" },
-      { name: "深橙 (S48)", hex: "#E65100" },
-      { name: "杏色 (S49)", hex: "#FFDAB9" },
-      { name: "桃色 (S50)", hex: "#FFE0B2" },
-
+      { name: "蜜瓜 (S45)", hex: "#FDBCB4" },{ name: "浅橙 (S46)", hex: "#FFB347" },
+      { name: "橙色 (S47)", hex: "#FF9800" },{ name: "深橙 (S48)", hex: "#E65100" },
+      { name: "杏色 (S49)", hex: "#FFDAB9" },{ name: "桃色 (S50)", hex: "#FFE0B2" },
       // 黄色系 (51-58)
-      { name: "浅黄 (S51)", hex: "#FFFFE0" },
-      { name: "黄色 (S52)", hex: "#FFEB3B" },
-      { name: "金黄 (S53)", hex: "#FFC107" },
-      { name: "芥末黄 (S54)", hex: "#D4E157" },
-      { name: "金色 (S55)", hex: "#FFD700" },
-      { name: "奶油黄 (S56)", hex: "#FFFACD" },
-      { name: "柠檬黄 (S57)", hex: "#FFF44F" },
-      { name: "土黄 (S58)", hex: "#CDA434" },
-
+      { name: "浅黄 (S51)", hex: "#FFFFE0" },{ name: "黄色 (S52)", hex: "#FFEB3B" },
+      { name: "金黄 (S53)", hex: "#FFC107" },{ name: "芥末黄 (S54)", hex: "#D4E157" },
+      { name: "金色 (S55)", hex: "#FFD700" },{ name: "奶油黄 (S56)", hex: "#FFFACD" },
+      { name: "柠檬黄 (S57)", hex: "#FFF44F" },{ name: "土黄 (S58)", hex: "#CDA434" },
       // 绿色系 (59-72)
-      { name: "薄荷 (S59)", hex: "#B2DFDB" },
-      { name: "浅绿 (S60)", hex: "#8BC34A" },
-      { name: "草绿 (S61)", hex: "#4CAF50" },
-      { name: "绿色 (S62)", hex: "#2E7D32" },
-      { name: "深绿 (S63)", hex: "#1B5E20" },
-      { name: "橄榄 (S64)", hex: "#6B8E23" },
-      { name: "军绿 (S65)", hex: "#556B2F" },
-      { name: "森林 (S66)", hex: "#228B22" },
-      { name: "柠檬绿 (S67)", hex: "#C0CA33" },
-      { name: "荧光绿 (S68)", hex: "#7CFC00" },
-      { name: "青绿 (S69)", hex: "#00A86B" },
-      { name: "松石绿 (S70)", hex: "#20B2AA" },
-      { name: "翡翠绿 (S71)", hex: "#50C878" },
-      { name: "嫩绿 (S72)", hex: "#C5E17A" },
-
+      { name: "薄荷 (S59)", hex: "#B2DFDB" },{ name: "浅绿 (S60)", hex: "#8BC34A" },
+      { name: "草绿 (S61)", hex: "#4CAF50" },{ name: "绿色 (S62)", hex: "#2E7D32" },
+      { name: "深绿 (S63)", hex: "#1B5E20" },{ name: "橄榄 (S64)", hex: "#6B8E23" },
+      { name: "军绿 (S65)", hex: "#556B2F" },{ name: "森林 (S66)", hex: "#228B22" },
+      { name: "柠檬绿 (S67)", hex: "#C0CA33" },{ name: "荧光绿 (S68)", hex: "#7CFC00" },
+      { name: "青绿 (S69)", hex: "#00A86B" },{ name: "松石绿 (S70)", hex: "#20B2AA" },
+      { name: "翡翠绿 (S71)", hex: "#50C878" },{ name: "嫩绿 (S72)", hex: "#C5E17A" },
       // 蓝色系 (73-86)
-      { name: "天蓝 (S73)", hex: "#87CEEB" },
-      { name: "浅蓝 (S74)", hex: "#64B5F6" },
-      { name: "蓝色 (S75)", hex: "#2196F3" },
-      { name: "深蓝 (S76)", hex: "#0D47A1" },
-      { name: "牛仔蓝 (S77)", hex: "#1565C0" },
-      { name: "灰蓝 (S78)", hex: "#607D8B" },
-      { name: "婴儿蓝 (S79)", hex: "#BBDEFB" },
-      { name: "湖蓝 (S80)", hex: "#03A9F4" },
-      { name: "海军蓝 (S81)", hex: "#000080" },
-      { name: "宝蓝 (S82)", hex: "#4169E1" },
-      { name: "钴蓝 (S83)", hex: "#1E40AF" },
-      { name: "冰蓝 (S84)", hex: "#A4DBE8" },
-      { name: "水蓝 (S85)", hex: "#87CEFA" },
-      { name: "靛蓝 (S86)", hex: "#3F51B5" },
-
+      { name: "天蓝 (S73)", hex: "#87CEEB" },{ name: "浅蓝 (S74)", hex: "#64B5F6" },
+      { name: "蓝色 (S75)", hex: "#2196F3" },{ name: "深蓝 (S76)", hex: "#0D47A1" },
+      { name: "牛仔蓝 (S77)", hex: "#1565C0" },{ name: "灰蓝 (S78)", hex: "#607D8B" },
+      { name: "婴儿蓝 (S79)", hex: "#BBDEFB" },{ name: "湖蓝 (S80)", hex: "#03A9F4" },
+      { name: "海军蓝 (S81)", hex: "#000080" },{ name: "宝蓝 (S82)", hex: "#4169E1" },
+      { name: "钴蓝 (S83)", hex: "#1E40AF" },{ name: "冰蓝 (S84)", hex: "#A4DBE8" },
+      { name: "水蓝 (S85)", hex: "#87CEFA" },{ name: "靛蓝 (S86)", hex: "#3F51B5" },
       // 紫色系 (87-96)
-      { name: "淡紫 (S87)", hex: "#E1BEE7" },
-      { name: "薰衣草 (S88)", hex: "#CE93D8" },
-      { name: "紫色 (S89)", hex: "#9C27B0" },
-      { name: "深紫 (S90)", hex: "#4A148C" },
-      { name: "品红 (S91)", hex: "#C2185B" },
-      { name: "紫红 (S92)", hex: "#880E4F" },
-      { name: "浅紫 (S93)", hex: "#D1C4E9" },
-      { name: "紫罗兰 (S94)", hex: "#8A2BE2" },
-      { name: "葡萄 (S95)", hex: "#6A0DAD" },
-      { name: "梅红 (S96)", hex: "#DDA0DD" },
-
+      { name: "淡紫 (S87)", hex: "#E1BEE7" },{ name: "薰衣草 (S88)", hex: "#CE93D8" },
+      { name: "紫色 (S89)", hex: "#9C27B0" },{ name: "深紫 (S90)", hex: "#4A148C" },
+      { name: "品红 (S91)", hex: "#C2185B" },{ name: "紫红 (S92)", hex: "#880E4F" },
+      { name: "浅紫 (S93)", hex: "#D1C4E9" },{ name: "紫罗兰 (S94)", hex: "#8A2BE2" },
+      { name: "葡萄 (S95)", hex: "#6A0DAD" },{ name: "梅红 (S96)", hex: "#DDA0DD" },
       // 粉彩色/荧光/特殊色 (97-110)
-      { name: "荧光粉 (S97)", hex: "#FF1493" },
-      { name: "荧光橙 (S98)", hex: "#FF5E00" },
-      { name: "荧光黄 (S99)", hex: "#CCFF00" },
-      { name: "荧光绿 (S100)", hex: "#39FF14" },
-      { name: "荧光蓝 (S101)", hex: "#00FFFF" },
-      { name: "荧光紫 (S102)", hex: "#BF00FF" },
-      { name: "珍珠白 (S103)", hex: "#F5F5F0" },
-      { name: "金属银 (S104)", hex: "#BCC6CC" },
-      { name: "金属金 (S105)", hex: "#D4AF37" },
-      { name: "金属铜 (S106)", hex: "#B87333" },
-      { name: "透明 (S107)", hex: "#F0F8FF" }, // 透明模拟
-      { name: "夜光 (S108)", hex: "#DAF7A6" },
-      { name: "条纹黑 (S109)", hex: "#2F2F2F" },
-      { name: "彩虹 (S110)", hex: "#FFD700" }, // 暂用金色替代
-
+      { name: "荧光粉 (S97)", hex: "#FF1493" },{ name: "荧光橙 (S98)", hex: "#FF5E00" },
+      { name: "荧光黄 (S99)", hex: "#CCFF00" },{ name: "荧光绿 (S100)", hex: "#39FF14" },
+      { name: "荧光蓝 (S101)", hex: "#00FFFF" },{ name: "荧光紫 (S102)", hex: "#BF00FF" },
+      { name: "珍珠白 (S103)", hex: "#F5F5F0" },{ name: "金属银 (S104)", hex: "#BCC6CC" },
+      { name: "金属金 (S105)", hex: "#D4AF37" },{ name: "金属铜 (S106)", hex: "#B87333" },
+      { name: "透明 (S107)", hex: "#F0F8FF" },{ name: "夜光 (S108)", hex: "#DAF7A6" },
+      { name: "条纹黑 (S109)", hex: "#2F2F2F" },{ name: "彩虹 (S110)", hex: "#FFD700" },
       // 扩展 C 系列软豆色 (111-150)
-      { name: "C01 白", hex: "#FFFFFF" },
-      { name: "C02 奶油", hex: "#FFFDD0" },
-      { name: "C03 灰", hex: "#808080" },
-      { name: "C04 黑", hex: "#000000" },
-      { name: "C05 红", hex: "#FF0000" },
-      { name: "C06 粉", hex: "#FF69B4" },
-      { name: "C07 橙", hex: "#FF9800" },
-      { name: "C08 黄", hex: "#FFEB3B" },
-      { name: "C09 绿", hex: "#4CAF50" },
-      { name: "C10 蓝", hex: "#2196F3" },
-      { name: "C11 紫", hex: "#9C27B0" },
-      { name: "C12 棕", hex: "#8B4513" },
-      { name: "C13 浅肤", hex: "#FFCC99" },
-      { name: "C14 薄荷", hex: "#B2DFDB" },
-      { name: "C15 天蓝", hex: "#87CEEB" },
-      { name: "C16 深绿", hex: "#1B5E20" },
-      { name: "C17 深蓝", hex: "#0D47A1" },
-      { name: "C18 酒红", hex: "#880E4F" },
-      { name: "C19 金黄", hex: "#FFC107" },
-      { name: "C20 深红", hex: "#B71C1C" },
-      { name: "C21 杏", hex: "#FFDAB9" },
-      { name: "C22 灰蓝", hex: "#607D8B" },
-      { name: "C23 橄榄", hex: "#6B8E23" },
-      { name: "C24 卡其", hex: "#C3A882" },
-      { name: "C25 深紫", hex: "#4A148C" },
-      { name: "C26 浅绿", hex: "#8BC34A" },
-      { name: "C27 浅蓝", hex: "#64B5F6" },
-      { name: "C28 浅粉", hex: "#FFB6C1" },
-      { name: "C29 珊瑚", hex: "#FF7F50" },
-      { name: "C30 深棕", hex: "#5C3A21" },
-      { name: "C31 银色", hex: "#C0C0C0" },
-      { name: "C32 金色", hex: "#FFD700" },
-      { name: "C33 古铜", hex: "#B87333" },
-      { name: "C34 荧光黄", hex: "#CCFF00" },
-      { name: "C35 荧光绿", hex: "#39FF14" },
-      { name: "C36 荧光粉", hex: "#FF1493" },
-      { name: "C37 荧光橙", hex: "#FF5E00" },
-      { name: "C38 荧光蓝", hex: "#00FFFF" },
-      { name: "C39 夜光", hex: "#DAF7A6" },
-      { name: "C40 透明", hex: "#F0F8FF" }
+      { name: "C01 白", hex: "#FFFFFF" },{ name: "C02 奶油", hex: "#FFFDD0" },
+      { name: "C03 灰", hex: "#808080" },{ name: "C04 黑", hex: "#000000" },
+      { name: "C05 红", hex: "#FF0000" },{ name: "C06 粉", hex: "#FF69B4" },
+      { name: "C07 橙", hex: "#FF9800" },{ name: "C08 黄", hex: "#FFEB3B" },
+      { name: "C09 绿", hex: "#4CAF50" },{ name: "C10 蓝", hex: "#2196F3" },
+      { name: "C11 紫", hex: "#9C27B0" },{ name: "C12 棕", hex: "#8B4513" },
+      { name: "C13 浅肤", hex: "#FFCC99" },{ name: "C14 薄荷", hex: "#B2DFDB" },
+      { name: "C15 天蓝", hex: "#87CEEB" },{ name: "C16 深绿", hex: "#1B5E20" },
+      { name: "C17 深蓝", hex: "#0D47A1" },{ name: "C18 酒红", hex: "#880E4F" },
+      { name: "C19 金黄", hex: "#FFC107" },{ name: "C20 深红", hex: "#B71C1C" },
+      { name: "C21 杏", hex: "#FFDAB9" },{ name: "C22 灰蓝", hex: "#607D8B" },
+      { name: "C23 橄榄", hex: "#6B8E23" },{ name: "C24 卡其", hex: "#C3A882" },
+      { name: "C25 深紫", hex: "#4A148C" },{ name: "C26 浅绿", hex: "#8BC34A" },
+      { name: "C27 浅蓝", hex: "#64B5F6" },{ name: "C28 浅粉", hex: "#FFB6C1" },
+      { name: "C29 珊瑚", hex: "#FF7F50" },{ name: "C30 深棕", hex: "#5C3A21" },
+      { name: "C31 银色", hex: "#C0C0C0" },{ name: "C32 金色", hex: "#FFD700" },
+      { name: "C33 古铜", hex: "#B87333" },{ name: "C34 荧光黄", hex: "#CCFF00" },
+      { name: "C35 荧光绿", hex: "#39FF14" },{ name: "C36 荧光粉", hex: "#FF1493" },
+      { name: "C37 荧光橙", hex: "#FF5E00" },{ name: "C38 荧光蓝", hex: "#00FFFF" },
+      { name: "C39 夜光", hex: "#DAF7A6" },{ name: "C40 透明", hex: "#F0F8FF" }
     ];
 
     const PALETTE_MAP = {};
@@ -352,6 +266,12 @@
 
     let tx = 0, ty = 0, s = 1;
     let history = [], historyIndex = -1;
+
+    // 双指手势状态
+    let pinchStartDist = 0;
+    let pinchMidX = 0, pinchMidY = 0;
+    let pinchStartTX = 0, pinchStartTY = 0;
+    let pinchStartScale = 1;
 
     // DOM
     const canvasWrapper = document.getElementById('canvasWrapper');
@@ -376,6 +296,7 @@
     const statsBtn = document.getElementById('statsBtn');
     const clearBtn = document.getElementById('clearBtn');
 
+    // 网格工具
     function initGrid(w,h,fill=null){ grid = Array(h).fill().map(()=>Array(w).fill(fill)); }
     function pushHistory(){
       if(historyIndex<history.length-1) history=history.slice(0,historyIndex+1);
@@ -446,6 +367,7 @@
       return best;
     }
 
+    // Floyd-Steinberg 抖动
     function ditherImageData(imageData, w, h){
       const pixels = imageData.data;
       const errors = new Float32Array(w*h*3);
@@ -543,8 +465,9 @@
 
     fitBtn.addEventListener('click', fitToScreen);
 
+    // 坐标转换（根据当前tx,ty,s）
     function getCell(e){
-      const canvasRect = canvas.getBoundingClientRect();
+      const rect = canvas.getBoundingClientRect();
       let clientX, clientY;
       if(e.touches){
         if(e.touches.length === 0) return null;
@@ -554,7 +477,6 @@
         clientX = e.clientX;
         clientY = e.clientY;
       }
-      const rect = canvas.getBoundingClientRect();
       const offsetX = (clientX - rect.left) / s;
       const offsetY = (clientY - rect.top) / s;
       const col = Math.floor(offsetX / CELL_SIZE);
@@ -593,11 +515,21 @@
       const target = grid[cell.row][cell.col]; if(target === currentColor) return;
       pushHistory(); floodFill(cell.row, cell.col, target, currentColor); render();
     }
+
+    // 绘画事件（仅单指）
     function onCanvasStart(e){
-      if(e.touches && e.touches.length === 2) return;
+      e.preventDefault();
+      const touches = e.touches ? e.touches.length : 1;
+      if (touches === 2) return; // 双指交给手势
+
       if(currentTool === 'fill') handleFill(e);
       else { pushHistory(); handleDraw(e); }
-      const move = e => { e.preventDefault(); if(currentTool !== 'fill') handleDraw(e); };
+
+      const move = e => {
+        e.preventDefault();
+        if (e.touches && e.touches.length !== 1) return; // 多指忽略
+        if(currentTool !== 'fill') handleDraw(e);
+      };
       const up = () => {
         document.removeEventListener('mousemove', move);
         document.removeEventListener('mouseup', up);
@@ -609,8 +541,112 @@
       document.addEventListener('touchmove', move, {passive: false});
       document.addEventListener('touchend', up);
     }
+
+    // 双指手势：缩放 + 平移
+    function onTouchStart(e) {
+      if (e.touches.length === 2) {
+        e.preventDefault();
+        pinchStartDist = Math.hypot(
+          e.touches[0].clientX - e.touches[1].clientX,
+          e.touches[0].clientY - e.touches[1].clientY
+        );
+        pinchMidX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+        pinchMidY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+        pinchStartTX = tx;
+        pinchStartTY = ty;
+        pinchStartScale = s;
+      }
+    }
+
+    function onTouchMove(e) {
+      if (e.touches.length === 2) {
+        e.preventDefault();
+        const dist = Math.hypot(
+          e.touches[0].clientX - e.touches[1].clientX,
+          e.touches[0].clientY - e.touches[1].clientY
+        );
+        const midX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+        const midY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+
+        // 缩放
+        const newScale = Math.min(5, Math.max(0.2, pinchStartScale * (dist / pinchStartDist)));
+        // 平移（考虑缩放中心偏移，类似以双指中心为锚点）
+        const rect = canvasWrapper.getBoundingClientRect();
+        const anchorX = (pinchMidX - rect.left - pinchStartTX) / pinchStartScale;
+        const anchorY = (pinchMidY - rect.top - pinchStartTY) / pinchStartScale;
+        tx = midX - rect.left - anchorX * newScale;
+        ty = midY - rect.top - anchorY * newScale;
+        s = newScale;
+        applyTransform();
+      }
+    }
+
+    function onTouchEnd(e) {
+      if (e.touches.length < 2) {
+        // 双指结束，重置状态
+      }
+    }
+
+    // 注册事件
     canvas.addEventListener('mousedown', onCanvasStart);
-    canvas.addEventListener('touchstart', e => { e.preventDefault(); onCanvasStart(e); });
+    canvas.addEventListener('touchstart', e => {
+      if (e.touches.length === 1) {
+        onCanvasStart(e); // 单指绘画
+      } else {
+        onTouchStart(e); // 双指手势
+      }
+    }, {passive: false});
+    canvas.addEventListener('touchmove', e => {
+      if (e.touches.length === 2) {
+        onTouchMove(e);
+      }
+      // 单指移动已在onCanvasStart内部绑定
+    }, {passive: false});
+    canvas.addEventListener('touchend', onTouchEnd);
+    canvas.addEventListener('touchcancel', onTouchEnd);
+
+    // 桌面滚轮缩放
+    canvasWrapper.addEventListener('wheel', e => {
+      e.preventDefault();
+      const delta = e.deltaY > 0 ? 0.9 : 1.1;
+      const newScale = Math.min(5, Math.max(0.2, s * delta));
+      const rect = canvasWrapper.getBoundingClientRect();
+      const mx = e.clientX - rect.left;
+      const my = e.clientY - rect.top;
+      const scaleChange = newScale / s;
+      tx = mx - scaleChange * (mx - tx);
+      ty = my - scaleChange * (my - ty);
+      s = newScale;
+      applyTransform();
+    }, {passive: false});
+
+    // 桌面Ctrl+拖拽平移
+    let mousePan = false, lastMouseX, lastMouseY;
+    canvasWrapper.addEventListener('mousedown', e => {
+      if (e.ctrlKey || e.button === 1 || e.button === 2) {
+        e.preventDefault();
+        mousePan = true;
+        lastMouseX = e.clientX;
+        lastMouseY = e.clientY;
+        canvasWrapper.style.cursor = 'grabbing';
+      }
+    });
+    window.addEventListener('mousemove', e => {
+      if (mousePan) {
+        tx += e.clientX - lastMouseX;
+        ty += e.clientY - lastMouseY;
+        lastMouseX = e.clientX;
+        lastMouseY = e.clientY;
+        applyTransform();
+      }
+    });
+    window.addEventListener('mouseup', () => {
+      if (mousePan) {
+        mousePan = false;
+        canvasWrapper.style.cursor = '';
+      }
+    });
+    canvasWrapper.addEventListener('contextmenu', e => e.preventDefault());
 
     function setTool(t){
       currentTool = t;
@@ -645,7 +681,7 @@
       panel.className = 'stats-panel';
       let html = '<h3>📊 拼豆颜色统计</h3>';
       if(Object.keys(stats).length === 0){
-        html += '<p>暂无有效颜色数据（空白或全白）</p>';
+        html += '<p>暂无有效颜色数据</p>';
       } else {
         html += '<table class="stats-table"><tr><th>色号</th><th>颜色</th><th>名称</th><th>数量</th></tr>';
         const sorted = Object.entries(stats).sort((a,b)=>{
@@ -712,65 +748,6 @@
         if(i === 0) btn.classList.add('active');
       });
     }
-
-    // 手势
-    let lastPanX = 0, lastPanY = 0, lastPinchDist = 0;
-    canvasWrapper.addEventListener('wheel', e => {
-      e.preventDefault();
-      const delta = e.deltaY > 0 ? 0.9 : 1.1;
-      const newScale = Math.min(5, Math.max(0.2, s * delta));
-      const rect = canvasWrapper.getBoundingClientRect();
-      const mx = e.clientX - rect.left;
-      const my = e.clientY - rect.top;
-      const scaleChange = newScale / s;
-      tx = mx - scaleChange * (mx - tx);
-      ty = my - scaleChange * (my - ty);
-      s = newScale;
-      applyTransform();
-    }, {passive: false});
-
-    canvasWrapper.addEventListener('touchstart', e => {
-      if(e.touches.length === 2){
-        lastPinchDist = Math.hypot(
-          e.touches[0].clientX - e.touches[1].clientX,
-          e.touches[0].clientY - e.touches[1].clientY
-        );
-      } else if(e.touches.length === 1){
-        lastPanX = e.touches[0].clientX;
-        lastPanY = e.touches[0].clientY;
-      }
-    });
-    canvasWrapper.addEventListener('touchmove', e => {
-      e.preventDefault();
-      if(e.touches.length === 2){
-        const dist = Math.hypot(
-          e.touches[0].clientX - e.touches[1].clientX,
-          e.touches[0].clientY - e.touches[1].clientY
-        );
-        const newScale = Math.min(5, Math.max(0.2, s * (dist / lastPinchDist)));
-        const cx = (e.touches[0].clientX + e.touches[1].clientX) / 2;
-        const cy = (e.touches[0].clientY + e.touches[1].clientY) / 2;
-        const rect = canvasWrapper.getBoundingClientRect();
-        const mx = cx - rect.left;
-        const my = cy - rect.top;
-        const scaleChange = newScale / s;
-        tx = mx - scaleChange * (mx - tx);
-        ty = my - scaleChange * (my - ty);
-        s = newScale;
-        lastPinchDist = dist;
-        applyTransform();
-      } else if(e.touches.length === 1){
-        const dx = e.touches[0].clientX - lastPanX;
-        const dy = e.touches[0].clientY - lastPanY;
-        tx += dx;
-        ty += dy;
-        lastPanX = e.touches[0].clientX;
-        lastPanY = e.touches[0].clientY;
-        applyTransform();
-      }
-    }, {passive: false});
-    canvasWrapper.addEventListener('touchend', ()=>{});
-    canvasWrapper.addEventListener('contextmenu', e => e.preventDefault());
 
     // 导出
     exportBtn.addEventListener('click',()=>{
